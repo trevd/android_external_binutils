@@ -16,6 +16,7 @@ LOCAL_C_INCLUDES := \
                     $(LOCAL_PATH)/../bfd \
                     $(LOCAL_PATH)/../gas \
                     $(LOCAL_PATH)/../gas/config \
+                    external/zlib \
 
 LOCAL_CFLAGS := \
                -DARCH_arm \
