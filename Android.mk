@@ -1,7 +1,7 @@
 LOCAL_PATH:= $(call my-dir)
 
 TARGET_ARCH_FLAGS := $(LOCAL_PATH)/android/target-$(TARGET_ARCH).mk
-LOCAL_VERSION := 2.23.52.0.2
+LOCAL_VERSION := 2.24
 BUILD_LIBBFD := $(LOCAL_PATH)/android/libbfd.mk
 BUILD_LIBOPCODES := $(LOCAL_PATH)/android/libopcodes.mk
 BUILD_LIBIBERTY := $(LOCAL_PATH)/android/libiberty.mk
