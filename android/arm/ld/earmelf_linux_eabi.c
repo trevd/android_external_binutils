@@ -57,7 +57,6 @@ static void gldarmelf_linux_eabi_before_allocation (void);
 static void gldarmelf_linux_eabi_after_allocation (void);
 static lang_output_section_statement_type *gldarmelf_linux_eabi_place_orphan
   (asection *, const char *, int);
-static void gldarmelf_linux_eabi_finish (void);
 #ifdef HAVE_GLOB
 #include <glob.h>
 #endif
@@ -264,8 +263,9 @@ hook_in_stub (struct hook_stub_info *info, lang_statement_union_type **lp)
    immediately after INPUT_SECTION.  */
 
 static asection *
-elf32_arm_add_stub_section (const char *stub_sec_name,
-			    asection *input_section)
+elf32_arm_add_stub_section (const char * stub_sec_name,
+			    asection *   input_section,
+			    unsigned int alignment_power)
 {
   asection *stub_sec;
   flagword flags;
@@ -281,7 +281,7 @@ elf32_arm_add_stub_section (const char *stub_sec_name,
   if (stub_sec == NULL)
     goto err_ret;
 
-  bfd_set_section_alignment (stub_file->the_bfd, stub_sec, 3);
+  bfd_set_section_alignment (stub_file->the_bfd, stub_sec, alignment_power);
 
   output_section = input_section->output_section;
   secname = bfd_get_section_name (output_section->owner, output_section);
@@ -446,7 +446,7 @@ gldarmelf_linux_eabi_after_allocation (void)
 }
 
 static void
-arm_finish (void)
+gldarmelf_linux_eabi_finish (void)
 {
   struct bfd_link_hash_entry * h;
 
@@ -469,7 +469,7 @@ arm_finish (void)
 	}
     }
 
-  gldarmelf_linux_eabi_finish ();
+  finish_default ();
 
   if (thumb_entry_symbol)
     {
@@ -1280,12 +1280,10 @@ gldarmelf_linux_eabi_check_needed (lang_input_statement_type *s)
 
 
 static bfd_size_type
-id_note_section_size (bfd *abfd)
+id_note_section_size (bfd *abfd ATTRIBUTE_UNUSED)
 {
   const char *style = emit_note_gnu_build_id;
   bfd_size_type size;
-
-  abfd = abfd;
 
   size = offsetof (Elf_External_Note, name[sizeof "GNU"]);
   size = (size + 3) & -(bfd_size_type) 4;
@@ -1565,13 +1563,16 @@ gldarmelf_linux_eabi_after_open (void)
       int force;
 
       /* If the lib that needs this one was --as-needed and wasn't
-	 found to be needed, then this lib isn't needed either.  Skip
-	 the lib when creating a shared object unless we are copying
-	 DT_NEEDED entres.  */
+	 found to be needed, then this lib isn't needed either.  */
       if (l->by != NULL
-	  && ((bfd_elf_get_dyn_lib_class (l->by) & DYN_AS_NEEDED) != 0
-	      || (!link_info.executable
-		  && bfd_elf_get_dyn_lib_class (l->by) & DYN_NO_ADD_NEEDED) != 0))
+	  && (bfd_elf_get_dyn_lib_class (l->by) & DYN_AS_NEEDED) != 0)
+	continue;
+
+      /* Skip the lib if --no-copy-dt-needed-entries and
+	 --allow-shlib-undefined is in effect.  */
+      if (l->by != NULL
+	  && link_info.unresolved_syms_in_shared_libs == RM_IGNORE
+	  && (bfd_elf_get_dyn_lib_class (l->by) & DYN_NO_ADD_NEEDED) != 0)
 	continue;
 
       /* If we've already seen this file, skip it.  */
@@ -1804,13 +1805,37 @@ gldarmelf_linux_eabi_before_allocation (void)
   asection *sinterp;
   bfd *abfd;
 
-  if (link_info.hash->type == bfd_link_elf_hash_table)
-    _bfd_elf_tls_setup (link_info.output_bfd, &link_info);
+  if (is_elf_hash_table (link_info.hash))
+    {
+      _bfd_elf_tls_setup (link_info.output_bfd, &link_info);
 
-  /* If we are going to make any variable assignments, we need to let
-     the ELF backend know about them in case the variables are
-     referred to by dynamic objects.  */
-  lang_for_each_statement (gldarmelf_linux_eabi_find_statement_assignment);
+      /* Make __ehdr_start hidden if it has been referenced, to
+	 prevent the symbol from being dynamic.  */
+      if (!link_info.relocatable)
+       {
+         struct elf_link_hash_entry *h
+           = elf_link_hash_lookup (elf_hash_table (&link_info), "__ehdr_start",
+                                   FALSE, FALSE, TRUE);
+
+         /* Only adjust the export class if the symbol was referenced
+            and not defined, otherwise leave it alone.  */
+         if (h != NULL
+             && (h->root.type == bfd_link_hash_new
+                 || h->root.type == bfd_link_hash_undefined
+                 || h->root.type == bfd_link_hash_undefweak
+                 || h->root.type == bfd_link_hash_common))
+           {
+             _bfd_elf_link_hash_hide_symbol (&link_info, h, TRUE);
+             if (ELF_ST_VISIBILITY (h->other) != STV_INTERNAL)
+               h->other = (h->other & ~ELF_ST_VISIBILITY (-1)) | STV_HIDDEN;
+           }
+       }
+
+      /* If we are going to make any variable assignments, we need to
+	 let the ELF backend know about them in case the variables are
+	 referred to by dynamic objects.  */
+      lang_for_each_statement (gldarmelf_linux_eabi_find_statement_assignment);
+    }
 
   /* Let the ELF backend work out the sizes of any sections required
      by dynamic linking.  */
@@ -2065,8 +2090,6 @@ output_rel_find (asection *sec, int isdyn)
   return last;
 }
 
-static int orphan_init_done = 0;
-
 /* Place an orphan section.  We use this to put random SHF_ALLOC
    sections in the right segment.  */
 
@@ -2075,7 +2098,7 @@ gldarmelf_linux_eabi_place_orphan (asection *s,
 				   const char *secname,
 				   int constraint)
 {
-  static struct orphan_save orig_hold[] =
+  static struct orphan_save hold[] =
     {
       { ".text",
 	SEC_HAS_CONTENTS | SEC_ALLOC | SEC_LOAD | SEC_READONLY | SEC_CODE,
@@ -2102,7 +2125,6 @@ gldarmelf_linux_eabi_place_orphan (asection *s,
 	SEC_HAS_CONTENTS,
 	0, 0, 0, 0 },
     };
-  static struct orphan_save hold[ARRAY_SIZE (orig_hold)];
   enum orphan_save_index
     {
       orphan_text = 0,
@@ -2114,6 +2136,7 @@ gldarmelf_linux_eabi_place_orphan (asection *s,
       orphan_sdata,
       orphan_nonalloc
     };
+  static int orphan_init_done = 0;
   struct orphan_save *place;
   lang_output_section_statement_type *after;
   lang_output_section_statement_type *os;
@@ -2121,12 +2144,6 @@ gldarmelf_linux_eabi_place_orphan (asection *s,
   int isdyn = 0;
   int iself = s->owner->xvec->flavour == bfd_target_elf_flavour;
   unsigned int sh_type = iself ? elf_section_type (s) : SHT_NULL;
-
-  /* Orphaned sharable sections won't have correct page
-     requirements.  */
-  if (elf_section_flags (s) & SHF_GNU_SHARABLE)
-    einfo ("%F%P: unable to place orphaned sharable section %A (%B)\n",
-	   s, s->owner);
 
   if (! link_info.relocatable
       && link_info.combreloc
@@ -2196,22 +2213,15 @@ gldarmelf_linux_eabi_place_orphan (asection *s,
 
   if (!orphan_init_done)
     {
-      struct orphan_save *ho, *horig;
+      struct orphan_save *ho;
 
       for (ho = hold; ho < hold + sizeof (hold) / sizeof (hold[0]); ++ho)
-      for (ho = hold, horig = orig_hold;
-	   ho < hold + ARRAY_SIZE (hold);
-	   ++ho, ++horig)
-	{
-	  *ho = *horig;
-	  if (ho->name != NULL)
 	if (ho->name != NULL)
 	  {
 	    ho->os = lang_output_section_find (ho->name);
 	    if (ho->os != NULL && ho->os->flags == 0)
 	      ho->os->flags = ho->flags;
 	  }
-	}
       orphan_init_done = 1;
     }
 
@@ -2277,18 +2287,6 @@ gldarmelf_linux_eabi_place_orphan (asection *s,
     }
 
   return lang_insert_orphan (s, secname, constraint, after, place, NULL, NULL);
-}
-
-/* Final emulation specific call.  */
-
-static void
-gldarmelf_linux_eabi_finish (void)
-{
-  /* Support the object-only output.  */
-  if (link_info.emit_gnu_object_only)
-    orphan_init_done = 0;
-
-  finish_default ();
 }
 
 static char *
@@ -2441,7 +2439,7 @@ SECTIONS\n\
   /* DWARF 2 */\n\
   .debug_info     0 : { *(.debug_info) }\n\
   .debug_abbrev   0 : { *(.debug_abbrev) }\n\
-  .debug_line     0 : { *(.debug_line) }\n\
+  .debug_line     0 : { *(.debug_line .debug_line.* .debug_line_end ) }\n\
   .debug_frame    0 : { *(.debug_frame) }\n\
   .debug_str      0 : { *(.debug_str) }\n\
   .debug_loc      0 : { *(.debug_loc) }\n\
@@ -2602,7 +2600,7 @@ SECTIONS\n\
   /* DWARF 2 */\n\
   .debug_info     0 : { *(.debug_info) }\n\
   .debug_abbrev   0 : { *(.debug_abbrev) }\n\
-  .debug_line     0 : { *(.debug_line) }\n\
+  .debug_line     0 : { *(.debug_line .debug_line.* .debug_line_end ) }\n\
   .debug_frame    0 : { *(.debug_frame) }\n\
   .debug_str      0 : { *(.debug_str) }\n\
   .debug_loc      0 : { *(.debug_loc) }\n\
@@ -2692,7 +2690,7 @@ SECTIONS\n\
   .iplt           : { *(.iplt) }\n\
   .text           :\n\
   {\n\
-    *(.text.unlikely .text.*_unlikely)\n\
+    *(.text.unlikely .text.*_unlikely .text.unlikely.*)\n\
     *(.text.exit .text.exit.*)\n\
     *(.text.startup .text.startup.*)\n\
     *(.text.hot .text.hot.*)\n"
@@ -2836,7 +2834,7 @@ SECTIONS\n\
   /* DWARF 2 */\n\
   .debug_info     0 : { *(.debug_info .gnu.linkonce.wi.*) }\n\
   .debug_abbrev   0 : { *(.debug_abbrev) }\n\
-  .debug_line     0 : { *(.debug_line) }\n\
+  .debug_line     0 : { *(.debug_line .debug_line.* .debug_line_end ) }\n\
   .debug_frame    0 : { *(.debug_frame) }\n\
   .debug_str      0 : { *(.debug_str) }\n\
   .debug_loc      0 : { *(.debug_loc) }\n\
@@ -2853,7 +2851,7 @@ SECTIONS\n\
   .debug_macro    0 : { *(.debug_macro) }\n\
   .gnu.attributes 0 : { KEEP (*(.gnu.attributes)) }\n\
   .note.gnu.arm.ident 0 : { KEEP (*(.note.gnu.arm.ident)) }\n\
-  /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) *(.gnu_object_only) }\n\
+  /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) }\n\
 }\n\n"
   ; else if (!config.magic_demand_paged) return
 "/* Script for -n: mix text and data on same page */\n\
@@ -2927,7 +2925,7 @@ SECTIONS\n\
   .iplt           : { *(.iplt) }\n\
   .text           :\n\
   {\n\
-    *(.text.unlikely .text.*_unlikely)\n\
+    *(.text.unlikely .text.*_unlikely .text.unlikely.*)\n\
     *(.text.exit .text.exit.*)\n\
     *(.text.startup .text.startup.*)\n\
     *(.text.hot .text.hot.*)\n"
@@ -3073,7 +3071,7 @@ SECTIONS\n\
   /* DWARF 2 */\n\
   .debug_info     0 : { *(.debug_info .gnu.linkonce.wi.*) }\n\
   .debug_abbrev   0 : { *(.debug_abbrev) }\n\
-  .debug_line     0 : { *(.debug_line) }\n\
+  .debug_line     0 : { *(.debug_line .debug_line.* .debug_line_end ) }\n\
   .debug_frame    0 : { *(.debug_frame) }\n\
   .debug_str      0 : { *(.debug_str) }\n\
   .debug_loc      0 : { *(.debug_loc) }\n\
@@ -3090,7 +3088,7 @@ SECTIONS\n\
   .debug_macro    0 : { *(.debug_macro) }\n\
   .gnu.attributes 0 : { KEEP (*(.gnu.attributes)) }\n\
   .note.gnu.arm.ident 0 : { KEEP (*(.note.gnu.arm.ident)) }\n\
-  /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) *(.gnu_object_only) }\n\
+  /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) }\n\
 }\n\n"
   ; else if (link_info.pie && link_info.combreloc
              && link_info.relro
@@ -3169,7 +3167,7 @@ SECTIONS\n\
   .iplt           : { *(.iplt) }\n\
   .text           :\n\
   {\n\
-    *(.text.unlikely .text.*_unlikely)\n"
+    *(.text.unlikely .text.*_unlikely .text.unlikely.*)\n"
 "    *(.text.exit .text.exit.*)\n\
     *(.text.startup .text.startup.*)\n\
     *(.text.hot .text.hot.*)\n\
@@ -3315,7 +3313,7 @@ SECTIONS\n\
   /* DWARF 2 */\n\
   .debug_info     0 : { *(.debug_info .gnu.linkonce.wi.*) }\n\
   .debug_abbrev   0 : { *(.debug_abbrev) }\n\
-  .debug_line     0 : { *(.debug_line) }\n\
+  .debug_line     0 : { *(.debug_line .debug_line.* .debug_line_end ) }\n\
   .debug_frame    0 : { *(.debug_frame) }\n\
   .debug_str      0 : { *(.debug_str) }\n\
   .debug_loc      0 : { *(.debug_loc) }\n\
@@ -3332,7 +3330,7 @@ SECTIONS\n\
   .debug_macro    0 : { *(.debug_macro) }\n\
   .gnu.attributes 0 : { KEEP (*(.gnu.attributes)) }\n\
   .note.gnu.arm.ident 0 : { KEEP (*(.note.gnu.arm.ident)) }\n\
-  /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) *(.gnu_object_only) }\n\
+  /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) }\n\
 }\n\n"
   ; else if (link_info.pie && link_info.combreloc) return
 "/* Script for -pie -z combreloc: position independent executable, combine & sort relocs */\n\
@@ -3409,7 +3407,7 @@ SECTIONS\n\
   .iplt           : { *(.iplt) }\n\
   .text           :\n\
   {\n\
-    *(.text.unlikely .text.*_unlikely)\n"
+    *(.text.unlikely .text.*_unlikely .text.unlikely.*)\n"
 "    *(.text.exit .text.exit.*)\n\
     *(.text.startup .text.startup.*)\n\
     *(.text.hot .text.hot.*)\n\
@@ -3555,7 +3553,7 @@ SECTIONS\n\
   /* DWARF 2 */\n\
   .debug_info     0 : { *(.debug_info .gnu.linkonce.wi.*) }\n\
   .debug_abbrev   0 : { *(.debug_abbrev) }\n\
-  .debug_line     0 : { *(.debug_line) }\n\
+  .debug_line     0 : { *(.debug_line .debug_line.* .debug_line_end ) }\n\
   .debug_frame    0 : { *(.debug_frame) }\n\
   .debug_str      0 : { *(.debug_str) }\n\
   .debug_loc      0 : { *(.debug_loc) }\n\
@@ -3572,7 +3570,7 @@ SECTIONS\n\
   .debug_macro    0 : { *(.debug_macro) }\n\
   .gnu.attributes 0 : { KEEP (*(.gnu.attributes)) }\n\
   .note.gnu.arm.ident 0 : { KEEP (*(.note.gnu.arm.ident)) }\n\
-  /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) *(.gnu_object_only) }\n\
+  /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) }\n\
 }\n\n"
   ; else if (link_info.pie) return
 "/* Script for ld -pie: link position independent executable */\n\
@@ -3646,7 +3644,7 @@ SECTIONS\n\
   .iplt           : { *(.iplt) }\n\
   .text           :\n\
   {\n\
-    *(.text.unlikely .text.*_unlikely)\n\
+    *(.text.unlikely .text.*_unlikely .text.unlikely.*)\n\
     *(.text.exit .text.exit.*)\n\
     *(.text.startup .text.startup.*)\n\
     *(.text.hot .text.hot.*)\n"
@@ -3792,7 +3790,7 @@ SECTIONS\n\
   /* DWARF 2 */\n\
   .debug_info     0 : { *(.debug_info .gnu.linkonce.wi.*) }\n\
   .debug_abbrev   0 : { *(.debug_abbrev) }\n\
-  .debug_line     0 : { *(.debug_line) }\n\
+  .debug_line     0 : { *(.debug_line .debug_line.* .debug_line_end ) }\n\
   .debug_frame    0 : { *(.debug_frame) }\n\
   .debug_str      0 : { *(.debug_str) }\n\
   .debug_loc      0 : { *(.debug_loc) }\n\
@@ -3809,7 +3807,7 @@ SECTIONS\n\
   .debug_macro    0 : { *(.debug_macro) }\n\
   .gnu.attributes 0 : { KEEP (*(.gnu.attributes)) }\n\
   .note.gnu.arm.ident 0 : { KEEP (*(.note.gnu.arm.ident)) }\n\
-  /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) *(.gnu_object_only) }\n\
+  /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) }\n\
 }\n\n"
   ; else if (link_info.shared && link_info.combreloc
              && link_info.relro
@@ -3879,7 +3877,7 @@ SECTIONS\n\
   .iplt           : { *(.iplt) }\n\
   .text           :\n\
   {\n\
-    *(.text.unlikely .text.*_unlikely)\n\
+    *(.text.unlikely .text.*_unlikely .text.unlikely.*)\n\
     *(.text.exit .text.exit.*)\n\
     *(.text.startup .text.startup.*)\n\
     *(.text.hot .text.hot.*)\n\
@@ -4019,7 +4017,7 @@ SECTIONS\n\
   /* DWARF 2 */\n\
   .debug_info     0 : { *(.debug_info .gnu.linkonce.wi.*) }\n\
   .debug_abbrev   0 : { *(.debug_abbrev) }\n\
-  .debug_line     0 : { *(.debug_line) }\n\
+  .debug_line     0 : { *(.debug_line .debug_line.* .debug_line_end ) }\n\
   .debug_frame    0 : { *(.debug_frame) }\n\
   .debug_str      0 : { *(.debug_str) }\n\
   .debug_loc      0 : { *(.debug_loc) }\n\
@@ -4036,7 +4034,7 @@ SECTIONS\n\
   .debug_macro    0 : { *(.debug_macro) }\n\
   .gnu.attributes 0 : { KEEP (*(.gnu.attributes)) }\n\
   .note.gnu.arm.ident 0 : { KEEP (*(.note.gnu.arm.ident)) }\n\
-  /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) *(.gnu_object_only) }\n\
+  /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) }\n\
 }\n\n"
   ; else if (link_info.shared && link_info.combreloc) return
 "/* Script for --shared -z combreloc: shared library, combine & sort relocs */\n\
@@ -4104,7 +4102,7 @@ SECTIONS\n\
   .iplt           : { *(.iplt) }\n\
   .text           :\n\
   {\n\
-    *(.text.unlikely .text.*_unlikely)\n\
+    *(.text.unlikely .text.*_unlikely .text.unlikely.*)\n\
     *(.text.exit .text.exit.*)\n\
     *(.text.startup .text.startup.*)\n\
     *(.text.hot .text.hot.*)\n\
@@ -4244,7 +4242,7 @@ SECTIONS\n\
   /* DWARF 2 */\n\
   .debug_info     0 : { *(.debug_info .gnu.linkonce.wi.*) }\n\
   .debug_abbrev   0 : { *(.debug_abbrev) }\n\
-  .debug_line     0 : { *(.debug_line) }\n\
+  .debug_line     0 : { *(.debug_line .debug_line.* .debug_line_end ) }\n\
   .debug_frame    0 : { *(.debug_frame) }\n\
   .debug_str      0 : { *(.debug_str) }\n\
   .debug_loc      0 : { *(.debug_loc) }\n\
@@ -4261,7 +4259,7 @@ SECTIONS\n\
   .debug_macro    0 : { *(.debug_macro) }\n\
   .gnu.attributes 0 : { KEEP (*(.gnu.attributes)) }\n\
   .note.gnu.arm.ident 0 : { KEEP (*(.note.gnu.arm.ident)) }\n\
-  /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) *(.gnu_object_only) }\n\
+  /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) }\n\
 }\n\n"
   ; else if (link_info.shared) return
 "/* Script for ld --shared: link shared library */\n\
@@ -4330,7 +4328,7 @@ SECTIONS\n\
   .iplt           : { *(.iplt) }\n\
   .text           :\n\
   {\n\
-    *(.text.unlikely .text.*_unlikely)\n\
+    *(.text.unlikely .text.*_unlikely .text.unlikely.*)\n\
     *(.text.exit .text.exit.*)\n\
     *(.text.startup .text.startup.*)\n\
     *(.text.hot .text.hot.*)\n\
@@ -4470,7 +4468,7 @@ SECTIONS\n\
   /* DWARF 2 */\n\
   .debug_info     0 : { *(.debug_info .gnu.linkonce.wi.*) }\n\
   .debug_abbrev   0 : { *(.debug_abbrev) }\n\
-  .debug_line     0 : { *(.debug_line) }\n\
+  .debug_line     0 : { *(.debug_line .debug_line.* .debug_line_end ) }\n\
   .debug_frame    0 : { *(.debug_frame) }\n\
   .debug_str      0 : { *(.debug_str) }\n\
   .debug_loc      0 : { *(.debug_loc) }\n\
@@ -4487,7 +4485,7 @@ SECTIONS\n\
   .debug_macro    0 : { *(.debug_macro) }\n\
   .gnu.attributes 0 : { KEEP (*(.gnu.attributes)) }\n\
   .note.gnu.arm.ident 0 : { KEEP (*(.note.gnu.arm.ident)) }\n\
-  /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) *(.gnu_object_only) }\n\
+  /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) }\n\
 }\n\n"
   ; else if (link_info.combreloc && link_info.relro
              && (link_info.flags & DF_BIND_NOW)) return
@@ -4565,7 +4563,7 @@ SECTIONS\n\
   .iplt           : { *(.iplt) }\n\
   .text           :\n\
   {\n\
-    *(.text.unlikely .text.*_unlikely)\n"
+    *(.text.unlikely .text.*_unlikely .text.unlikely.*)\n"
 "    *(.text.exit .text.exit.*)\n\
     *(.text.startup .text.startup.*)\n\
     *(.text.hot .text.hot.*)\n\
@@ -4711,7 +4709,7 @@ SECTIONS\n\
   /* DWARF 2 */\n\
   .debug_info     0 : { *(.debug_info .gnu.linkonce.wi.*) }\n\
   .debug_abbrev   0 : { *(.debug_abbrev) }\n\
-  .debug_line     0 : { *(.debug_line) }\n\
+  .debug_line     0 : { *(.debug_line .debug_line.* .debug_line_end ) }\n\
   .debug_frame    0 : { *(.debug_frame) }\n\
   .debug_str      0 : { *(.debug_str) }\n\
   .debug_loc      0 : { *(.debug_loc) }\n\
@@ -4728,7 +4726,7 @@ SECTIONS\n\
   .debug_macro    0 : { *(.debug_macro) }\n\
   .gnu.attributes 0 : { KEEP (*(.gnu.attributes)) }\n\
   .note.gnu.arm.ident 0 : { KEEP (*(.note.gnu.arm.ident)) }\n\
-  /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) *(.gnu_object_only) }\n\
+  /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) }\n\
 }\n\n"
   ; else if (link_info.combreloc) return
 "/* Script for -z combreloc: combine and sort reloc sections */\n\
@@ -4805,7 +4803,7 @@ SECTIONS\n\
   .iplt           : { *(.iplt) }\n\
   .text           :\n\
   {\n\
-    *(.text.unlikely .text.*_unlikely)\n"
+    *(.text.unlikely .text.*_unlikely .text.unlikely.*)\n"
 "    *(.text.exit .text.exit.*)\n\
     *(.text.startup .text.startup.*)\n\
     *(.text.hot .text.hot.*)\n\
@@ -4951,7 +4949,7 @@ SECTIONS\n\
   /* DWARF 2 */\n\
   .debug_info     0 : { *(.debug_info .gnu.linkonce.wi.*) }\n\
   .debug_abbrev   0 : { *(.debug_abbrev) }\n\
-  .debug_line     0 : { *(.debug_line) }\n\
+  .debug_line     0 : { *(.debug_line .debug_line.* .debug_line_end ) }\n\
   .debug_frame    0 : { *(.debug_frame) }\n\
   .debug_str      0 : { *(.debug_str) }\n\
   .debug_loc      0 : { *(.debug_loc) }\n\
@@ -4968,7 +4966,7 @@ SECTIONS\n\
   .debug_macro    0 : { *(.debug_macro) }\n\
   .gnu.attributes 0 : { KEEP (*(.gnu.attributes)) }\n\
   .note.gnu.arm.ident 0 : { KEEP (*(.note.gnu.arm.ident)) }\n\
-  /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) *(.gnu_object_only) }\n\
+  /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) }\n\
 }\n\n"
   ; else return
 "/* Default linker script, for normal executables */\n\
@@ -5042,7 +5040,7 @@ SECTIONS\n\
   .iplt           : { *(.iplt) }\n\
   .text           :\n\
   {\n\
-    *(.text.unlikely .text.*_unlikely)\n\
+    *(.text.unlikely .text.*_unlikely .text.unlikely.*)\n\
     *(.text.exit .text.exit.*)\n\
     *(.text.startup .text.startup.*)\n\
     *(.text.hot .text.hot.*)\n"
@@ -5188,7 +5186,7 @@ SECTIONS\n\
   /* DWARF 2 */\n\
   .debug_info     0 : { *(.debug_info .gnu.linkonce.wi.*) }\n\
   .debug_abbrev   0 : { *(.debug_abbrev) }\n\
-  .debug_line     0 : { *(.debug_line) }\n\
+  .debug_line     0 : { *(.debug_line .debug_line.* .debug_line_end ) }\n\
   .debug_frame    0 : { *(.debug_frame) }\n\
   .debug_str      0 : { *(.debug_str) }\n\
   .debug_loc      0 : { *(.debug_loc) }\n\
@@ -5205,7 +5203,7 @@ SECTIONS\n\
   .debug_macro    0 : { *(.debug_macro) }\n\
   .gnu.attributes 0 : { KEEP (*(.gnu.attributes)) }\n\
   .note.gnu.arm.ident 0 : { KEEP (*(.note.gnu.arm.ident)) }\n\
-  /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) *(.gnu_object_only) }\n\
+  /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) }\n\
 }\n\n"
 ; }
  
@@ -5445,8 +5443,6 @@ gldarmelf_linux_eabi_handle_option (int optc)
 	link_info.error_textrel = FALSE;
       else if (strcmp (optarg, "textoff") == 0)
 	link_info.error_textrel = FALSE;
-      else if (strcmp (optarg, "nosecondary") == 0)
-	link_info.emit_secondary = FALSE;
       else
 	einfo (_("%P: warning: -z %s ignored.\n"), optarg);
       break;
@@ -5581,7 +5577,6 @@ gldarmelf_linux_eabi_list_options (FILE * file)
   fprintf (file, _("  -z origin                   Mark object requiring immediate $ORIGIN\n				processing at runtime\n"));
   fprintf (file, _("  -z relro                    Create RELRO program header\n"));
   fprintf (file, _("  -z stacksize=SIZE           Set size of stack segment\n"));
-  fprintf (file, _("  -z nosecondary              Convert secondary symbols to weak symbols\n"));
  
   fprintf (file, _("  --thumb-entry=<sym>         Set the entry point to be Thumb symbol <sym>\n"));
   fprintf (file, _("  --be8                       Output BE8 format image\n"));
@@ -5626,7 +5621,7 @@ struct ld_emulation_xfer_struct ld_armelf_linux_eabi_emulation =
   gldarmelf_linux_eabi_get_script,
   "armelf_linux_eabi",
   "elf32-littlearm",
-  arm_finish,
+  gldarmelf_linux_eabi_finish,
   arm_elf_create_output_section_statements,
   gldarmelf_linux_eabi_open_dynamic_archive,
   gldarmelf_linux_eabi_place_orphan,

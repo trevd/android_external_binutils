@@ -5,6 +5,7 @@ include $(CLEAR_VARS)
 LD_TARGET := arm-linux-androideabi
 LD_BINDIR :=/system/bin
 LD_SCRIPTDIR :=/system/$(LD_TARGET)/lib 
+LD_SCRIPTDIR :=$(LOCAL_PATH)/../android/$(TARGET_ARCH)/ld/ldscripts
 LD_TOOLBINDIR :=/system/$(LD_TARGET)/bin
 LD_DEFAULT_EMULATION := armelf_linux_eabi
 LD_TARGET_SYSTEM_ROOT :=
@@ -24,7 +25,7 @@ LOCAL_C_INCLUDES := \
 LOCAL_CFLAGS := \
                -Wl,-rpath -Wl,/system/lib \
                -W -Wall -Wstrict-prototypes \
-               -Wmissing-prototypes -Wshadow -Werror -g -O2 \
+               -Wmissing-prototypes -Wno-erro=shadow -O0 \
 
                
 # ld specific cflags
@@ -33,33 +34,43 @@ LOCAL_CFLAGS += \
                -DTOOLBINDIR=\"$(LD_TOOLBINDIR)\" \
                -DBINDIR=\"$(LD_BINDIR)\" \
                -DTARGET=\"$(LD_TARGET)\" \
-               -DTARGET_SYSTEM_ROOT=\"$(LD_TARGET_SYSTEM_ROOT)\" \
+               -DTARGET_SYSTEM_ROOT=\"\" \
                -DTARGET_SYSTEM_ROOT_RELOCATABLE \
                -DSCRIPTDIR=\"$(LD_SCRIPTDIR)\" \
-               -x c 
                
-LOCAL_YACCFLAGS := -v
 
+# "-x c" forces the lex/yacc files to be compiled as c;
+# the build system otherwise forces them to be c++.               
+LOCAL_CFLAGS += -x c 
+               
+LOCAL_YACCFLAGS :=  -v
 
-# Add
 include $(TARGET_ARCH_FLAGS)
 
+# Generated Source Files     
 LOCAL_SRC_FILES := \
-                    ldgram.y \
                     ldlex.l \
-                    lexsup.c \
-                    ldlang.c \
-                    mri.c \
+                    ldgram.y \
+                    deffilep.y \
+                    
+# Static Source Files     
+LOCAL_SRC_FILES += \
                     ldctor.c \
-                    ldmain.c \
-                    ldwrite.c \
-                    ldexp.c \
                     ldemul.c \
-                    ldver.c \
+                    ldexp.c \
+                    ldfile.c \
+                    ldlang.c \
+                    ldmain.c \
                     ldmisc.c \
+                    ldver.c \
+                    ldwrite.c \
+                    lexsup.c \
+                    mri.c \
                     ldcref.c \
-                    ../android/$(TARGET_ARCH)/ld/ldearmelf_linux_eabi.c \
+                    pe-dll.c \
+                    pep-dll.c \
                     ../android/$(TARGET_ARCH)/ld/earmelfb_linux_eabi.c \
+                    ../android/$(TARGET_ARCH)/ld/earmelf_linux_eabi.c
                     
 LOCAL_STATIC_LIBRARIES := libc libstdc++ libbfd libopcodes libiberty libz
 

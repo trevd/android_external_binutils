@@ -57,7 +57,6 @@ static void gldarmelfb_linux_eabi_before_allocation (void);
 static void gldarmelfb_linux_eabi_after_allocation (void);
 static lang_output_section_statement_type *gldarmelfb_linux_eabi_place_orphan
   (asection *, const char *, int);
-static void gldarmelfb_linux_eabi_finish (void);
 #ifdef HAVE_GLOB
 #include <glob.h>
 #endif
@@ -73,33 +72,33 @@ gldarmelfb_linux_eabi_map_segments (bfd_boolean need_layout)
       need_layout = FALSE;
 
       if (link_info.output_bfd->xvec->flavour == bfd_target_elf_flavour
-    && !link_info.relocatable)
-  {
-    bfd_size_type phdr_size;
+	  && !link_info.relocatable)
+	{
+	  bfd_size_type phdr_size;
 
-    phdr_size = elf_program_header_size (link_info.output_bfd);
-    /* If we don't have user supplied phdrs, throw away any
-       previous linker generated program headers.  */
-    if (lang_phdr_list == NULL)
-      elf_seg_map (link_info.output_bfd) = NULL;
-    if (!_bfd_elf_map_sections_to_segments (link_info.output_bfd,
-              &link_info))
-      einfo ("%F%P: map sections to segments failed: %E\n");
+	  phdr_size = elf_program_header_size (link_info.output_bfd);
+	  /* If we don't have user supplied phdrs, throw away any
+	     previous linker generated program headers.  */
+	  if (lang_phdr_list == NULL)
+	    elf_seg_map (link_info.output_bfd) = NULL;
+	  if (!_bfd_elf_map_sections_to_segments (link_info.output_bfd,
+						  &link_info))
+	    einfo ("%F%P: map sections to segments failed: %E\n");
 
-    if (phdr_size != elf_program_header_size (link_info.output_bfd))
-      {
-        if (tries > 6)
-    /* The first few times we allow any change to
-       phdr_size .  */
-    need_layout = TRUE;
-        else if (phdr_size
-           < elf_program_header_size (link_info.output_bfd))
-    /* After that we only allow the size to grow.  */
-    need_layout = TRUE;
-        else
-    elf_program_header_size (link_info.output_bfd) = phdr_size;
-      }
-  }
+	  if (phdr_size != elf_program_header_size (link_info.output_bfd))
+	    {
+	      if (tries > 6)
+		/* The first few times we allow any change to
+		   phdr_size .  */
+		need_layout = TRUE;
+	      else if (phdr_size
+		       < elf_program_header_size (link_info.output_bfd))
+		/* After that we only allow the size to grow.  */
+		need_layout = TRUE;
+	      else
+		elf_program_header_size (link_info.output_bfd) = phdr_size;
+	    }
+	}
     }
   while (need_layout && --tries);
 
@@ -127,7 +126,7 @@ static int fix_arm1176 = 1;
 static void
 gldarmelfb_linux_eabi_before_parse (void)
 {
-#ifndef TARGET_     /* I.e., if not generic.  */
+#ifndef TARGET_			/* I.e., if not generic.  */
   ldfile_set_output_arch ("arm", bfd_arch_unknown);
 #endif /* not TARGET_ */
   input_flags.dynamic = TRUE;
@@ -153,16 +152,16 @@ arm_elf_before_allocation (void)
     {
       /* Here we rummage through the found bfds to collect glue information.  */
       LANG_FOR_EACH_INPUT_STATEMENT (is)
-  {
+	{
           /* Initialise mapping tables for code/data.  */
           bfd_elf32_arm_init_maps (is->the_bfd);
 
-    if (!bfd_elf32_arm_process_before_allocation (is->the_bfd,
-              &link_info)
-        || !bfd_elf32_arm_vfp11_erratum_scan (is->the_bfd, &link_info))
-      /* xgettext:c-format */
-      einfo (_("Errors encountered processing file %s"), is->filename);
-  }
+	  if (!bfd_elf32_arm_process_before_allocation (is->the_bfd,
+							&link_info)
+	      || !bfd_elf32_arm_vfp11_erratum_scan (is->the_bfd, &link_info))
+	    /* xgettext:c-format */
+	    einfo (_("Errors encountered processing file %s"), is->filename);
+	}
 
       /* We have seen it all.  Allocate it, and carry on.  */
       bfd_elf32_arm_allocate_interworking_sections (& link_info);
@@ -200,59 +199,59 @@ hook_in_stub (struct hook_stub_info *info, lang_statement_union_type **lp)
   for (; (l = *lp) != NULL; lp = &l->header.next)
     {
       switch (l->header.type)
-  {
-  case lang_constructors_statement_enum:
-    ret = hook_in_stub (info, &constructor_list.head);
-    if (ret)
-      return ret;
-    break;
+	{
+	case lang_constructors_statement_enum:
+	  ret = hook_in_stub (info, &constructor_list.head);
+	  if (ret)
+	    return ret;
+	  break;
 
-  case lang_output_section_statement_enum:
-    ret = hook_in_stub (info,
-            &l->output_section_statement.children.head);
-    if (ret)
-      return ret;
-    break;
+	case lang_output_section_statement_enum:
+	  ret = hook_in_stub (info,
+			      &l->output_section_statement.children.head);
+	  if (ret)
+	    return ret;
+	  break;
 
-  case lang_wild_statement_enum:
-    ret = hook_in_stub (info, &l->wild_statement.children.head);
-    if (ret)
-      return ret;
-    break;
+	case lang_wild_statement_enum:
+	  ret = hook_in_stub (info, &l->wild_statement.children.head);
+	  if (ret)
+	    return ret;
+	  break;
 
-  case lang_group_statement_enum:
-    ret = hook_in_stub (info, &l->group_statement.children.head);
-    if (ret)
-      return ret;
-    break;
+	case lang_group_statement_enum:
+	  ret = hook_in_stub (info, &l->group_statement.children.head);
+	  if (ret)
+	    return ret;
+	  break;
 
-  case lang_input_section_enum:
-    if (l->input_section.section == info->input_section)
-      {
-        /* We've found our section.  Insert the stub immediately
-     after its associated input section.  */
-        *(info->add.tail) = l->header.next;
-        l->header.next = info->add.head;
-        return TRUE;
-      }
-    break;
+	case lang_input_section_enum:
+	  if (l->input_section.section == info->input_section)
+	    {
+	      /* We've found our section.  Insert the stub immediately
+		 after its associated input section.  */
+	      *(info->add.tail) = l->header.next;
+	      l->header.next = info->add.head;
+	      return TRUE;
+	    }
+	  break;
 
-  case lang_data_statement_enum:
-  case lang_reloc_statement_enum:
-  case lang_object_symbols_statement_enum:
-  case lang_output_statement_enum:
-  case lang_target_statement_enum:
-  case lang_input_statement_enum:
-  case lang_assignment_statement_enum:
-  case lang_padding_statement_enum:
-  case lang_address_statement_enum:
-  case lang_fill_statement_enum:
-    break;
+	case lang_data_statement_enum:
+	case lang_reloc_statement_enum:
+	case lang_object_symbols_statement_enum:
+	case lang_output_statement_enum:
+	case lang_target_statement_enum:
+	case lang_input_statement_enum:
+	case lang_assignment_statement_enum:
+	case lang_padding_statement_enum:
+	case lang_address_statement_enum:
+	case lang_fill_statement_enum:
+	  break;
 
-  default:
-    FAIL ();
-    break;
-  }
+	default:
+	  FAIL ();
+	  break;
+	}
     }
   return FALSE;
 }
@@ -264,8 +263,9 @@ hook_in_stub (struct hook_stub_info *info, lang_statement_union_type **lp)
    immediately after INPUT_SECTION.  */
 
 static asection *
-elf32_arm_add_stub_section (const char *stub_sec_name,
-          asection *input_section)
+elf32_arm_add_stub_section (const char * stub_sec_name,
+			    asection *   input_section,
+			    unsigned int alignment_power)
 {
   asection *stub_sec;
   flagword flags;
@@ -275,13 +275,13 @@ elf32_arm_add_stub_section (const char *stub_sec_name,
   struct hook_stub_info info;
 
   flags = (SEC_ALLOC | SEC_LOAD | SEC_READONLY | SEC_CODE
-     | SEC_HAS_CONTENTS | SEC_RELOC | SEC_IN_MEMORY | SEC_KEEP);
+	   | SEC_HAS_CONTENTS | SEC_RELOC | SEC_IN_MEMORY | SEC_KEEP);
   stub_sec = bfd_make_section_anyway_with_flags (stub_file->the_bfd,
-             stub_sec_name, flags);
+						 stub_sec_name, flags);
   if (stub_sec == NULL)
     goto err_ret;
 
-  bfd_set_section_alignment (stub_file->the_bfd, stub_sec, 3);
+  bfd_set_section_alignment (stub_file->the_bfd, stub_sec, alignment_power);
 
   output_section = input_section->output_section;
   secname = bfd_get_section_name (output_section->owner, output_section);
@@ -322,10 +322,10 @@ build_section_lists (lang_statement_union_type *statement)
       asection *i = statement->input_section.section;
 
       if (i->sec_info_type != SEC_INFO_TYPE_JUST_SYMS
-    && (i->flags & SEC_EXCLUDE) == 0
-    && i->output_section != NULL
-    && i->output_section->owner == link_info.output_bfd)
-  elf32_arm_next_input_section (& link_info, i);
+	  && (i->flags & SEC_EXCLUDE) == 0
+	  && i->output_section != NULL
+	  && i->output_section->owner == link_info.output_bfd)
+	elf32_arm_next_input_section (& link_info, i);
     }
 }
 
@@ -357,49 +357,49 @@ gldarmelfb_linux_eabi_after_allocation (void)
   if (!link_info.relocatable)
     {
       /* Build a sorted list of input text sections, then use that to process
-   the unwind table index.  */
+	 the unwind table index.  */
       unsigned int list_size = 10;
       asection **sec_list = (asection **)
           xmalloc (list_size * sizeof (asection *));
       unsigned int sec_count = 0;
 
       LANG_FOR_EACH_INPUT_STATEMENT (is)
-  {
-    bfd *abfd = is->the_bfd;
-    asection *sec;
+	{
+	  bfd *abfd = is->the_bfd;
+	  asection *sec;
 
-    if ((abfd->flags & (EXEC_P | DYNAMIC)) != 0)
-      continue;
+	  if ((abfd->flags & (EXEC_P | DYNAMIC)) != 0)
+	    continue;
 
-    for (sec = abfd->sections; sec != NULL; sec = sec->next)
-      {
-        asection *out_sec = sec->output_section;
+	  for (sec = abfd->sections; sec != NULL; sec = sec->next)
+	    {
+	      asection *out_sec = sec->output_section;
 
-        if (out_sec
-      && elf_section_data (sec)
-      && elf_section_type (sec) == SHT_PROGBITS
-      && (elf_section_flags (sec) & SHF_EXECINSTR) != 0
-      && (sec->flags & SEC_EXCLUDE) == 0
-      && sec->sec_info_type != SEC_INFO_TYPE_JUST_SYMS
-      && out_sec != bfd_abs_section_ptr)
-    {
-      if (sec_count == list_size)
-        {
-          list_size *= 2;
-          sec_list = (asection **)
+	      if (out_sec
+		  && elf_section_data (sec)
+		  && elf_section_type (sec) == SHT_PROGBITS
+		  && (elf_section_flags (sec) & SHF_EXECINSTR) != 0
+		  && (sec->flags & SEC_EXCLUDE) == 0
+		  && sec->sec_info_type != SEC_INFO_TYPE_JUST_SYMS
+		  && out_sec != bfd_abs_section_ptr)
+		{
+		  if (sec_count == list_size)
+		    {
+		      list_size *= 2;
+		      sec_list = (asection **)
                           xrealloc (sec_list, list_size * sizeof (asection *));
-        }
+		    }
 
-      sec_list[sec_count++] = sec;
-    }
-      }
-  }
+		  sec_list[sec_count++] = sec;
+		}
+	    }
+	}
 
       qsort (sec_list, sec_count, sizeof (asection *), &compare_output_sec_vma);
 
       if (elf32_arm_fix_exidx_coverage (sec_list, sec_count, &link_info,
-             merge_exidx_entries))
-  need_laying_out = 1;
+					   merge_exidx_entries))
+	need_laying_out = 1;
 
       free (sec_list);
     }
@@ -418,27 +418,27 @@ gldarmelfb_linux_eabi_after_allocation (void)
       int  ret = elf32_arm_setup_section_lists (link_info.output_bfd, & link_info);
 
       if (ret != 0)
-  {
-    if (ret < 0)
-      {
-        einfo ("%X%P: could not compute sections lists for stub generation: %E\n");
-        return;
-      }
+	{
+	  if (ret < 0)
+	    {
+	      einfo ("%X%P: could not compute sections lists for stub generation: %E\n");
+	      return;
+	    }
 
-    lang_for_each_statement (build_section_lists);
+	  lang_for_each_statement (build_section_lists);
 
-    /* Call into the BFD backend to do the real work.  */
-    if (! elf32_arm_size_stubs (link_info.output_bfd,
-              stub_file->the_bfd,
-              & link_info,
-              group_size,
-              & elf32_arm_add_stub_section,
-              & gldarm_layout_sections_again))
-      {
-        einfo ("%X%P: cannot size stub section: %E\n");
-        return;
-      }
-  }
+	  /* Call into the BFD backend to do the real work.  */
+	  if (! elf32_arm_size_stubs (link_info.output_bfd,
+				      stub_file->the_bfd,
+				      & link_info,
+				      group_size,
+				      & elf32_arm_add_stub_section,
+				      & gldarm_layout_sections_again))
+	    {
+	      einfo ("%X%P: cannot size stub section: %E\n");
+	      return;
+	    }
+	}
     }
 
   if (need_laying_out != -1)
@@ -446,7 +446,7 @@ gldarmelfb_linux_eabi_after_allocation (void)
 }
 
 static void
-arm_finish (void)
+gldarmelfb_linux_eabi_finish (void)
 {
   struct bfd_link_hash_entry * h;
 
@@ -463,67 +463,67 @@ arm_finish (void)
     {
       /* Now build the linker stubs.  */
       if (stub_file->the_bfd->sections != NULL)
-  {
-    if (! elf32_arm_build_stubs (& link_info))
-      einfo ("%X%P: can not build stubs: %E\n");
-  }
+	{
+	  if (! elf32_arm_build_stubs (& link_info))
+	    einfo ("%X%P: can not build stubs: %E\n");
+	}
     }
 
-  gldarmelfb_linux_eabi_finish ();
+  finish_default ();
 
   if (thumb_entry_symbol)
     {
       h = bfd_link_hash_lookup (link_info.hash, thumb_entry_symbol,
-        FALSE, FALSE, TRUE);
+				FALSE, FALSE, TRUE);
     }
   else
     {
       struct elf_link_hash_entry * eh;
 
       if (!entry_symbol.name)
-  return;
+	return;
 
       h = bfd_link_hash_lookup (link_info.hash, entry_symbol.name,
-        FALSE, FALSE, TRUE);
+				FALSE, FALSE, TRUE);
       eh = (struct elf_link_hash_entry *)h;
       if (!h || eh->target_internal != ST_BRANCH_TO_THUMB)
-  return;
+	return;
     }
 
 
   if (h != (struct bfd_link_hash_entry *) NULL
       && (h->type == bfd_link_hash_defined
-    || h->type == bfd_link_hash_defweak)
+	  || h->type == bfd_link_hash_defweak)
       && h->u.def.section->output_section != NULL)
     {
       static char buffer[32];
       bfd_vma val;
 
       /* Special procesing is required for a Thumb entry symbol.  The
-   bottom bit of its address must be set.  */
+	 bottom bit of its address must be set.  */
       val = (h->u.def.value
-       + bfd_get_section_vma (link_info.output_bfd,
-            h->u.def.section->output_section)
-       + h->u.def.section->output_offset);
+	     + bfd_get_section_vma (link_info.output_bfd,
+				    h->u.def.section->output_section)
+	     + h->u.def.section->output_offset);
 
       val |= 1;
 
       /* Now convert this value into a string and store it in entry_symbol
-   where the lang_finish() function will pick it up.  */
+	 where the lang_finish() function will pick it up.  */
       buffer[0] = '0';
       buffer[1] = 'x';
 
       sprintf_vma (buffer + 2, val);
 
       if (thumb_entry_symbol != NULL && entry_symbol.name != NULL
-    && entry_from_cmdline)
-  einfo (_("%P: warning: '--thumb-entry %s' is overriding '-e %s'\n"),
-         thumb_entry_symbol, entry_symbol.name);
+	  && entry_from_cmdline)
+	einfo (_("%P: warning: '--thumb-entry %s' is overriding '-e %s'\n"),
+	       thumb_entry_symbol, entry_symbol.name);
       entry_symbol.name = buffer;
     }
   else
     einfo (_("%P: warning: cannot find thumb start symbol %s\n"),
-     thumb_entry_symbol);
+	   thumb_entry_symbol);
 }
 
 /* This is a convenient point to tell BFD about target specific flags.
@@ -534,29 +534,29 @@ arm_elf_create_output_section_statements (void)
   if (strstr (bfd_get_target (link_info.output_bfd), "arm") == NULL)
     {
       /* The arm backend needs special fields in the output hash structure.
-   These will only be created if the output format is an arm format,
-   hence we do not support linking and changing output formats at the
-   same time.  Use a link followed by objcopy to change output formats.  */
+	 These will only be created if the output format is an arm format,
+	 hence we do not support linking and changing output formats at the
+	 same time.  Use a link followed by objcopy to change output formats.  */
       einfo ("%F%X%P: error: Cannot change output format whilst linking ARM binaries.\n");
       return;
     }
 
   bfd_elf32_arm_set_target_relocs (link_info.output_bfd, &link_info,
-           target1_is_rel,
-           target2_type, fix_v4bx, use_blx,
-           vfp11_denorm_fix, no_enum_size_warning,
-           no_wchar_size_warning,
-           pic_veneer, fix_cortex_a8,
-           fix_arm1176);
+				   target1_is_rel,
+				   target2_type, fix_v4bx, use_blx,
+				   vfp11_denorm_fix, no_enum_size_warning,
+				   no_wchar_size_warning,
+				   pic_veneer, fix_cortex_a8,
+				   fix_arm1176);
 
   stub_file = lang_add_input_file ("linker stubs",
-           lang_input_file_is_fake_enum,
-           NULL);
+ 				   lang_input_file_is_fake_enum,
+ 				   NULL);
   stub_file->the_bfd = bfd_create ("linker stubs", link_info.output_bfd);
   if (stub_file->the_bfd == NULL
       || ! bfd_set_arch_mach (stub_file->the_bfd,
-            bfd_get_arch (link_info.output_bfd),
-            bfd_get_mach (link_info.output_bfd)))
+ 			      bfd_get_arch (link_info.output_bfd),
+ 			      bfd_get_mach (link_info.output_bfd)))
     {
       einfo ("%X%P: can not create BFD %E\n");
       return;
@@ -612,14 +612,14 @@ gldarmelfb_linux_eabi_load_symbols (lang_input_statement_type *entry)
   if (entry->flags.just_syms
       && (bfd_get_file_flags (entry->the_bfd) & DYNAMIC) != 0)
     einfo (_("%P%F: --just-symbols may not be used on DSO: %B\n"),
-     entry->the_bfd);
+	   entry->the_bfd);
 
   if (link_class == 0
       || (bfd_get_file_flags (entry->the_bfd) & DYNAMIC) == 0)
     return FALSE;
 
   bfd_elf_set_dyn_lib_class (entry->the_bfd,
-           (enum dynamic_lib_link_class) link_class);
+			     (enum dynamic_lib_link_class) link_class);
 
   /* Continue on with normal load_symbols processing.  */
   return FALSE;
@@ -680,30 +680,30 @@ gldarmelfb_linux_eabi_vercheck (lang_input_statement_type *s)
       const char *suffix;
 
       if (filename_cmp (soname, l->name) == 0)
-  {
-    /* Probably can't happen, but it's an easy check.  */
-    continue;
-  }
+	{
+	  /* Probably can't happen, but it's an easy check.  */
+	  continue;
+	}
 
       if (strchr (l->name, '/') != NULL)
-  continue;
+	continue;
 
       suffix = strstr (l->name, ".so.");
       if (suffix == NULL)
-  continue;
+	continue;
 
       suffix += sizeof ".so." - 1;
 
       if (filename_ncmp (soname, l->name, suffix - l->name) == 0)
-  {
-    /* Here we know that S is a dynamic object FOO.SO.VER1, and
-       the object we are considering needs a dynamic object
-       FOO.SO.VER2, and VER1 and VER2 are different.  This
-       appears to be a version mismatch, so we tell the caller
-       to try a different version of this library.  */
-    global_vercheck_failed = TRUE;
-    return;
-  }
+	{
+	  /* Here we know that S is a dynamic object FOO.SO.VER1, and
+	     the object we are considering needs a dynamic object
+	     FOO.SO.VER2, and VER1 and VER2 are different.  This
+	     appears to be a version mismatch, so we tell the caller
+	     to try a different version of this library.  */
+	  global_vercheck_failed = TRUE;
+	  return;
+	}
     }
 }
 
@@ -771,7 +771,7 @@ gldarmelfb_linux_eabi_stat_needed (lang_input_statement_type *s)
 
   if (filename_ncmp (soname, global_needed->name, suffix - global_needed->name) == 0)
     einfo ("%P: warning: %s, needed by %B, may conflict with %s\n",
-     global_needed->name, global_needed->by, soname);
+	   global_needed->name, global_needed->by, soname);
 }
 
 struct dt_needed
@@ -786,7 +786,7 @@ struct dt_needed
 
 static bfd_boolean
 gldarmelfb_linux_eabi_try_needed (struct dt_needed *needed,
-         int force)
+				 int force)
 {
   bfd *abfd;
   const char *name = needed->name;
@@ -828,42 +828,42 @@ gldarmelfb_linux_eabi_try_needed (struct dt_needed *needed,
       struct bfd_link_needed_list *needs;
 
       if (! bfd_elf_get_bfd_needed_list (abfd, &needs))
-  einfo ("%F%P:%B: bfd_elf_get_bfd_needed_list failed: %E\n", abfd);
+	einfo ("%F%P:%B: bfd_elf_get_bfd_needed_list failed: %E\n", abfd);
 
       if (needs != NULL)
-  {
-    global_vercheck_needed = needs;
-    global_vercheck_failed = FALSE;
-    lang_for_each_input_file (gldarmelfb_linux_eabi_vercheck);
-    if (global_vercheck_failed)
-      {
-        bfd_close (abfd);
-        /* Return FALSE to force the caller to move on to try
-     another file on the search path.  */
-        return FALSE;
-      }
+	{
+	  global_vercheck_needed = needs;
+	  global_vercheck_failed = FALSE;
+	  lang_for_each_input_file (gldarmelfb_linux_eabi_vercheck);
+	  if (global_vercheck_failed)
+	    {
+	      bfd_close (abfd);
+	      /* Return FALSE to force the caller to move on to try
+		 another file on the search path.  */
+	      return FALSE;
+	    }
 
-    /* But wait!  It gets much worse.  On Linux, if a shared
-       library does not use libc at all, we are supposed to skip
-       it the first time around in case we encounter a shared
-       library later on with the same name which does use the
-       version of libc that we want.  This is much too horrible
-       to use on any system other than Linux.  */
+	  /* But wait!  It gets much worse.  On Linux, if a shared
+	     library does not use libc at all, we are supposed to skip
+	     it the first time around in case we encounter a shared
+	     library later on with the same name which does use the
+	     version of libc that we want.  This is much too horrible
+	     to use on any system other than Linux.  */
 
-    {
-      struct bfd_link_needed_list *l;
+	  {
+	    struct bfd_link_needed_list *l;
 
-      for (l = needs; l != NULL; l = l->next)
-        if (CONST_STRNEQ (l->name, "libc.so"))
-    break;
-      if (l == NULL)
-        {
-    bfd_close (abfd);
-    return FALSE;
-        }
-    }
+	    for (l = needs; l != NULL; l = l->next)
+	      if (CONST_STRNEQ (l->name, "libc.so"))
+		break;
+	    if (l == NULL)
+	      {
+		bfd_close (abfd);
+		return FALSE;
+	      }
+	  }
 
-  }
+	}
     }
 
   /* We've found a dynamic object matching the DT_NEEDED entry.  */
@@ -890,7 +890,7 @@ gldarmelfb_linux_eabi_try_needed (struct dt_needed *needed,
   if (global_found != NULL)
     {
       /* Return TRUE to indicate that we found the file, even though
-   we aren't going to do anything with it.  */
+	 we aren't going to do anything with it.  */
       return TRUE;
     }
 
@@ -923,7 +923,7 @@ gldarmelfb_linux_eabi_try_needed (struct dt_needed *needed,
 
 static bfd_boolean
 gldarmelfb_linux_eabi_search_needed (const char *path,
-            struct dt_needed *n, int force)
+				    struct dt_needed *n, int force)
 {
   const char *s;
   const char *name = n->name;
@@ -946,38 +946,38 @@ gldarmelfb_linux_eabi_search_needed (const char *path,
 
       s = strchr (path, config.rpath_separator);
       if (s == NULL)
-  s = path + strlen (path);
+	s = path + strlen (path);
 
 #if HAVE_DOS_BASED_FILE_SYSTEM
       /* Assume a match on the second char is part of drive specifier.  */
       else if (config.rpath_separator == ':'
-         && s == path + 1
-         && ISALPHA (*path))
-  {
-    s = strchr (s + 1, config.rpath_separator);
-    if (s == NULL)
-      s = path + strlen (path);
-  }
+	       && s == path + 1
+	       && ISALPHA (*path))
+	{
+	  s = strchr (s + 1, config.rpath_separator);
+	  if (s == NULL)
+	    s = path + strlen (path);
+	}
 #endif
       filename = (char *) xmalloc (s - path + len + 2);
       if (s == path)
-  sset = filename;
+	sset = filename;
       else
-  {
-    memcpy (filename, path, s - path);
-    filename[s - path] = '/';
-    sset = filename + (s - path) + 1;
-  }
+	{
+	  memcpy (filename, path, s - path);
+	  filename[s - path] = '/';
+	  sset = filename + (s - path) + 1;
+	}
       strcpy (sset, name);
 
       needed.name = filename;
       if (gldarmelfb_linux_eabi_try_needed (&needed, force))
-  return TRUE;
+	return TRUE;
 
       free (filename);
 
       if (*s == '\0')
-  break;
+	break;
       path = s + 1;
     }
 
@@ -1012,9 +1012,9 @@ gldarmelfb_linux_eabi_add_sysroot (const char *path)
   while (path[i])
     if (path[i] == config.rpath_separator)
       {
-  *p++ = path[i++];
-  strcpy (p, ld_sysroot);
-  p = p + strlen (p);
+	*p++ = path[i++];
+	strcpy (p, ld_sysroot);
+	p = p + strlen (p);
       }
     else
       *p++ = path[i++];
@@ -1064,7 +1064,7 @@ gldarmelfb_linux_eabi_parse_ld_so_conf_include
       size_t i;
 
       for (i = 0; i < gl.gl_pathc; ++i)
-  gldarmelfb_linux_eabi_parse_ld_so_conf (info, gl.gl_pathv[i]);
+	gldarmelfb_linux_eabi_parse_ld_so_conf (info, gl.gl_pathv[i]);
       globfree (&gl);
     }
 #else
@@ -1095,90 +1095,90 @@ gldarmelfb_linux_eabi_parse_ld_so_conf
 
       /* Normally this would use getline(3), but we need to be portable.  */
       while ((q = fgets (p, linelen - (p - line), f)) != NULL
-       && strlen (q) == linelen - (p - line) - 1
-       && line[linelen - 2] != '\n')
-  {
-    line = xrealloc (line, 2 * linelen);
-    p = line + linelen - 1;
-    linelen += linelen;
-  }
+	     && strlen (q) == linelen - (p - line) - 1
+	     && line[linelen - 2] != '\n')
+	{
+	  line = xrealloc (line, 2 * linelen);
+	  p = line + linelen - 1;
+	  linelen += linelen;
+	}
 
       if (q == NULL && p == line)
-  break;
+	break;
 
       p = strchr (line, '\n');
       if (p)
-  *p = '\0';
+	*p = '\0';
 
       /* Because the file format does not know any form of quoting we
-   can search forward for the next '#' character and if found
-   make it terminating the line.  */
+	 can search forward for the next '#' character and if found
+	 make it terminating the line.  */
       p = strchr (line, '#');
       if (p)
-  *p = '\0';
+	*p = '\0';
 
       /* Remove leading whitespace.  NUL is no whitespace character.  */
       p = line;
       while (*p == ' ' || *p == '\f' || *p == '\r' || *p == '\t' || *p == '\v')
-  ++p;
+	++p;
 
       /* If the line is blank it is ignored.  */
       if (p[0] == '\0')
-  continue;
+	continue;
 
       if (CONST_STRNEQ (p, "include") && (p[7] == ' ' || p[7] == '\t'))
-  {
-    char *dir, c;
-    p += 8;
-    do
-      {
-        while (*p == ' ' || *p == '\t')
-    ++p;
+	{
+	  char *dir, c;
+	  p += 8;
+	  do
+	    {
+	      while (*p == ' ' || *p == '\t')
+		++p;
 
-        if (*p == '\0')
-    break;
+	      if (*p == '\0')
+		break;
 
-        dir = p;
+	      dir = p;
 
-        while (*p != ' ' && *p != '\t' && *p)
-    ++p;
+	      while (*p != ' ' && *p != '\t' && *p)
+		++p;
 
-        c = *p;
-        *p++ = '\0';
-        if (dir[0] != '\0')
-    gldarmelfb_linux_eabi_parse_ld_so_conf_include (info, filename,
-                     dir);
-      }
-    while (c != '\0');
-  }
+	      c = *p;
+	      *p++ = '\0';
+	      if (dir[0] != '\0')
+		gldarmelfb_linux_eabi_parse_ld_so_conf_include (info, filename,
+							       dir);
+	    }
+	  while (c != '\0');
+	}
       else
-  {
-    char *dir = p;
-    while (*p && *p != '=' && *p != ' ' && *p != '\t' && *p != '\f'
-     && *p != '\r' && *p != '\v')
-      ++p;
+	{
+	  char *dir = p;
+	  while (*p && *p != '=' && *p != ' ' && *p != '\t' && *p != '\f'
+		 && *p != '\r' && *p != '\v')
+	    ++p;
 
-    while (p != dir && p[-1] == '/')
-      --p;
-    if (info->path == NULL)
-      {
-        info->alloc = p - dir + 1 + 256;
-        info->path = xmalloc (info->alloc);
-        info->len = 0;
-      }
-    else
-      {
-        if (info->len + 1 + (p - dir) >= info->alloc)
-    {
-      info->alloc += p - dir + 256;
-      info->path = xrealloc (info->path, info->alloc);
-    }
-        info->path[info->len++] = config.rpath_separator;
-      }
-    memcpy (info->path + info->len, dir, p - dir);
-    info->len += p - dir;
-    info->path[info->len] = '\0';
-  }
+	  while (p != dir && p[-1] == '/')
+	    --p;
+	  if (info->path == NULL)
+	    {
+	      info->alloc = p - dir + 1 + 256;
+	      info->path = xmalloc (info->alloc);
+	      info->len = 0;
+	    }
+	  else
+	    {
+	      if (info->len + 1 + (p - dir) >= info->alloc)
+		{
+		  info->alloc += p - dir + 256;
+		  info->path = xrealloc (info->path, info->alloc);
+		}
+	      info->path[info->len++] = config.rpath_separator;
+	    }
+	  memcpy (info->path + info->len, dir, p - dir);
+	  info->len += p - dir;
+	  info->path[info->len] = '\0';
+	}
     }
   while (! feof (f));
   free (line);
@@ -1188,7 +1188,7 @@ gldarmelfb_linux_eabi_parse_ld_so_conf
 
 static bfd_boolean
 gldarmelfb_linux_eabi_check_ld_so_conf (const struct bfd_link_needed_list *l,
-               int force)
+				       int force)
 {
   static bfd_boolean initialized;
   static char *ld_so_conf;
@@ -1202,22 +1202,22 @@ gldarmelfb_linux_eabi_check_ld_so_conf (const struct bfd_link_needed_list *l,
       info.path = NULL;
       info.len = info.alloc = 0;
       tmppath = concat (ld_sysroot, "/system/etc/ld.so.conf",
-      (const char *) NULL);
+			(const char *) NULL);
       if (!gldarmelfb_linux_eabi_parse_ld_so_conf (&info, tmppath))
-  {
-    free (tmppath);
-    tmppath = concat (ld_sysroot, "/etc/ld.so.conf",
-          (const char *) NULL);
-    gldarmelfb_linux_eabi_parse_ld_so_conf (&info, tmppath);
-  }
+	{
+	  free (tmppath);
+	  tmppath = concat (ld_sysroot, "/etc/ld.so.conf",
+			    (const char *) NULL);
+	  gldarmelfb_linux_eabi_parse_ld_so_conf (&info, tmppath);
+	}
       free (tmppath);
 
       if (info.path)
-  {
-    char *d = gldarmelfb_linux_eabi_add_sysroot (info.path);
-    free (info.path);
-    ld_so_conf = d;
-  }
+	{
+	  char *d = gldarmelfb_linux_eabi_add_sysroot (info.path);
+	  free (info.path);
+	  ld_so_conf = d;
+	}
       initialized = TRUE;
     }
 
@@ -1241,7 +1241,7 @@ gldarmelfb_linux_eabi_check_needed (lang_input_statement_type *s)
   /* Stop looking if we've found a loaded lib.  */
   if (global_found != NULL
       && (bfd_elf_get_dyn_lib_class (global_found->the_bfd)
-    & DYN_AS_NEEDED) == 0)
+	  & DYN_AS_NEEDED) == 0)
     return;
 
   if (s->filename == NULL || s->the_bfd == NULL)
@@ -1262,11 +1262,11 @@ gldarmelfb_linux_eabi_check_needed (lang_input_statement_type *s)
     {
       const char *f = strrchr (s->filename, '/');
       if (f != NULL
-    && filename_cmp (f + 1, global_needed->name) == 0)
-  {
-    global_found = s;
-    return;
-  }
+	  && filename_cmp (f + 1, global_needed->name) == 0)
+	{
+	  global_found = s;
+	  return;
+	}
     }
 
   soname = bfd_elf_get_dt_soname (s->the_bfd);
@@ -1280,12 +1280,10 @@ gldarmelfb_linux_eabi_check_needed (lang_input_statement_type *s)
 
 
 static bfd_size_type
-id_note_section_size (bfd *abfd)
+id_note_section_size (bfd *abfd ATTRIBUTE_UNUSED)
 {
   const char *style = emit_note_gnu_build_id;
   bfd_size_type size;
-
-  abfd = abfd;
 
   size = offsetof (Elf_External_Note, name[sizeof "GNU"]);
   size = (size + 3) & -(bfd_size_type) 4;
@@ -1299,20 +1297,20 @@ id_note_section_size (bfd *abfd)
       /* ID is in string form (hex).  Convert to bits.  */
       const char *id = style + 2;
       do
-  {
-    if (ISXDIGIT (id[0]) && ISXDIGIT (id[1]))
-      {
-        ++size;
-        id += 2;
-      }
-    else if (*id == '-' || *id == ':')
-      ++id;
-    else
-      {
-        size = 0;
-        break;
-      }
-  } while (*id != '\0');
+	{
+	  if (ISXDIGIT (id[0]) && ISXDIGIT (id[1]))
+	    {
+	      ++size;
+	      id += 2;
+	    }
+	  else if (*id == '-' || *id == ':')
+	    ++id;
+	  else
+	    {
+	      size = 0;
+	      break;
+	    }
+	} while (*id != '\0');
     }
   else
     size = 0;
@@ -1352,7 +1350,7 @@ write_build_id (bfd *abfd)
   if (bfd_is_abs_section (asec->output_section))
     {
       einfo (_("%P: warning: .note.gnu.build-id section discarded,"
-         " --build-id ignored.\n"));
+	       " --build-id ignored.\n"));
       return TRUE;
     }
   i_shdr = &elf_section_data (asec->output_section)->this_hdr;
@@ -1360,7 +1358,7 @@ write_build_id (bfd *abfd)
   if (i_shdr->contents == NULL)
     {
       if (asec->contents == NULL)
-  asec->contents = (unsigned char *) xmalloc (asec->size);
+	asec->contents = (unsigned char *) xmalloc (asec->size);
       contents = asec->contents;
     }
   else
@@ -1383,7 +1381,7 @@ write_build_id (bfd *abfd)
 
       md5_init_ctx (&ctx);
       if (!bed->s->checksum_contents (abfd, (sum_fn) &md5_process_bytes, &ctx))
-  return FALSE;
+	return FALSE;
       md5_finish_ctx (&ctx, id_bits);
     }
   else if (strcmp (style, "sha1") == 0)
@@ -1392,7 +1390,7 @@ write_build_id (bfd *abfd)
 
       sha1_init_ctx (&ctx);
       if (!bed->s->checksum_contents (abfd, (sum_fn) &sha1_process_bytes, &ctx))
-  return FALSE;
+	return FALSE;
       sha1_finish_ctx (&ctx, id_bits);
     }
   else if (strcmp (style, "uuid") == 0)
@@ -1400,11 +1398,11 @@ write_build_id (bfd *abfd)
       int n;
       int fd = open ("/dev/urandom", O_RDONLY);
       if (fd < 0)
-  return FALSE;
+	return FALSE;
       n = read (fd, id_bits, size);
       close (fd);
       if (n < (int) size)
-  return FALSE;
+	return FALSE;
     }
   else if (strncmp (style, "0x", 2) == 0)
     {
@@ -1412,25 +1410,25 @@ write_build_id (bfd *abfd)
       const char *id = style + 2;
       size_t n = 0;
       do
-  {
-    if (ISXDIGIT (id[0]) && ISXDIGIT (id[1]))
-      {
-        id_bits[n] = read_hex (*id++) << 4;
-        id_bits[n++] |= read_hex (*id++);
-      }
-    else if (*id == '-' || *id == ':')
-      ++id;
-    else
-      abort ();   /* Should have been validated earlier.  */
-  } while (*id != '\0');
+	{
+	  if (ISXDIGIT (id[0]) && ISXDIGIT (id[1]))
+	    {
+	      id_bits[n] = read_hex (*id++) << 4;
+	      id_bits[n++] |= read_hex (*id++);
+	    }
+	  else if (*id == '-' || *id == ':')
+	    ++id;
+	  else
+	    abort ();		/* Should have been validated earlier.  */
+	} while (*id != '\0');
     }
   else
-    abort ();     /* Should have been validated earlier.  */
+    abort ();			/* Should have been validated earlier.  */
 
   position = i_shdr->sh_offset + asec->output_offset;
   size = asec->size;
   return (bfd_seek (abfd, position, SEEK_SET) == 0
-    && bfd_bwrite (contents, size, abfd) == size);
+	  && bfd_bwrite (contents, size, abfd) == size);
 }
 
 /* Make .note.gnu.build-id section, and set up elf_tdata->build_id.  */
@@ -1450,7 +1448,7 @@ setup_build_id (bfd *ibfd)
     }
 
   flags = (SEC_ALLOC | SEC_LOAD | SEC_IN_MEMORY
-     | SEC_LINKER_CREATED | SEC_READONLY | SEC_DATA);
+	   | SEC_LINKER_CREATED | SEC_READONLY | SEC_DATA);
   s = bfd_make_section_with_flags (ibfd, ".note.gnu.build-id", flags);
   if (s != NULL && bfd_set_section_alignment (ibfd, s, 2))
     {
@@ -1464,7 +1462,7 @@ setup_build_id (bfd *ibfd)
     }
 
   einfo ("%P: warning: Cannot create .note.gnu.build-id section,"
-   " --build-id ignored.\n");
+	 " --build-id ignored.\n");
   return FALSE;
 }
 
@@ -1488,18 +1486,18 @@ gldarmelfb_linux_eabi_after_open (void)
 
       /* Find an ELF input.  */
       for (abfd = link_info.input_bfds;
-     abfd != (bfd *) NULL; abfd = abfd->link_next)
-  if (bfd_get_flavour (abfd) == bfd_target_elf_flavour)
-    break;
+	   abfd != (bfd *) NULL; abfd = abfd->link_next)
+	if (bfd_get_flavour (abfd) == bfd_target_elf_flavour)
+	  break;
 
       /* PR 10555: If there are no ELF input files do not try to
-   create a .note.gnu-build-id section.  */
+	 create a .note.gnu-build-id section.  */
       if (abfd == NULL
-    || !setup_build_id (abfd))
-  {
-    free ((char *) emit_note_gnu_build_id);
-    emit_note_gnu_build_id = NULL;
-  }
+	  || !setup_build_id (abfd))
+	{
+	  free ((char *) emit_note_gnu_build_id);
+	  emit_note_gnu_build_id = NULL;
+	}
     }
 
   if (link_info.relocatable)
@@ -1513,39 +1511,39 @@ gldarmelfb_linux_eabi_after_open (void)
       asection *s;
 
       for (abfd = link_info.input_bfds; abfd; abfd = abfd->link_next)
-  {
-    if (bfd_get_flavour (abfd) == bfd_target_elf_flavour)
-      elfbfd = abfd;
-    if (!warn_eh_frame)
-      {
-        s = bfd_get_section_by_name (abfd, ".eh_frame");
-        while (s != NULL
-         && (s->size <= 8
-       || bfd_is_abs_section (s->output_section)))
-    s = bfd_get_next_section_by_name (s);
-        warn_eh_frame = s != NULL;
-      }
-    if (elfbfd && warn_eh_frame)
-      break;
-  }
+	{
+	  if (bfd_get_flavour (abfd) == bfd_target_elf_flavour)
+	    elfbfd = abfd;
+	  if (!warn_eh_frame)
+	    {
+	      s = bfd_get_section_by_name (abfd, ".eh_frame");
+	      while (s != NULL
+		     && (s->size <= 8
+			 || bfd_is_abs_section (s->output_section)))
+		s = bfd_get_next_section_by_name (s);
+	      warn_eh_frame = s != NULL;
+	    }
+	  if (elfbfd && warn_eh_frame)
+	    break;
+	}
       if (elfbfd)
-  {
-    const struct elf_backend_data *bed;
+	{
+	  const struct elf_backend_data *bed;
 
-    bed = get_elf_backend_data (elfbfd);
-    s = bfd_make_section_with_flags (elfbfd, ".eh_frame_hdr",
-             bed->dynamic_sec_flags
-             | SEC_READONLY);
-    if (s != NULL
-        && bfd_set_section_alignment (elfbfd, s, 2))
-      {
-        htab->eh_info.hdr_sec = s;
-        warn_eh_frame = FALSE;
-      }
-  }
+	  bed = get_elf_backend_data (elfbfd);
+	  s = bfd_make_section_with_flags (elfbfd, ".eh_frame_hdr",
+					   bed->dynamic_sec_flags
+					   | SEC_READONLY);
+	  if (s != NULL
+	      && bfd_set_section_alignment (elfbfd, s, 2))
+	    {
+	      htab->eh_info.hdr_sec = s;
+	      warn_eh_frame = FALSE;
+	    }
+	}
       if (warn_eh_frame)
-  einfo ("%P: warning: Cannot create .eh_frame_hdr section,"
-         " --eh-frame-hdr ignored.\n");
+	einfo ("%P: warning: Cannot create .eh_frame_hdr section,"
+	       " --eh-frame-hdr ignored.\n");
     }
 
   /* Get the list of files which appear in DT_NEEDED entries in
@@ -1565,124 +1563,127 @@ gldarmelfb_linux_eabi_after_open (void)
       int force;
 
       /* If the lib that needs this one was --as-needed and wasn't
-   found to be needed, then this lib isn't needed either.  Skip
-   the lib when creating a shared object unless we are copying
-   DT_NEEDED entres.  */
+	 found to be needed, then this lib isn't needed either.  */
       if (l->by != NULL
-    && ((bfd_elf_get_dyn_lib_class (l->by) & DYN_AS_NEEDED) != 0
-        || (!link_info.executable
-      && bfd_elf_get_dyn_lib_class (l->by) & DYN_NO_ADD_NEEDED) != 0))
-  continue;
+	  && (bfd_elf_get_dyn_lib_class (l->by) & DYN_AS_NEEDED) != 0)
+	continue;
+
+      /* Skip the lib if --no-copy-dt-needed-entries and
+	 --allow-shlib-undefined is in effect.  */
+      if (l->by != NULL
+	  && link_info.unresolved_syms_in_shared_libs == RM_IGNORE
+	  && (bfd_elf_get_dyn_lib_class (l->by) & DYN_NO_ADD_NEEDED) != 0)
+	continue;
 
       /* If we've already seen this file, skip it.  */
       for (ll = needed; ll != l; ll = ll->next)
-  if ((ll->by == NULL
-       || (bfd_elf_get_dyn_lib_class (ll->by) & DYN_AS_NEEDED) == 0)
-      && strcmp (ll->name, l->name) == 0)
-    break;
+	if ((ll->by == NULL
+	     || (bfd_elf_get_dyn_lib_class (ll->by) & DYN_AS_NEEDED) == 0)
+	    && strcmp (ll->name, l->name) == 0)
+	  break;
       if (ll != l)
-  continue;
+	continue;
 
       /* See if this file was included in the link explicitly.  */
       global_needed = l;
       global_found = NULL;
       lang_for_each_input_file (gldarmelfb_linux_eabi_check_needed);
       if (global_found != NULL
-    && (bfd_elf_get_dyn_lib_class (global_found->the_bfd)
-        & DYN_AS_NEEDED) == 0)
-  continue;
+	  && (bfd_elf_get_dyn_lib_class (global_found->the_bfd)
+	      & DYN_AS_NEEDED) == 0)
+	continue;
 
       n.by = l->by;
       n.name = l->name;
       nn.by = l->by;
       if (verbose)
-  info_msg (_("%s needed by %B\n"), l->name, l->by);
+	info_msg (_("%s needed by %B\n"), l->name, l->by);
 
       /* As-needed libs specified on the command line (or linker script)
-   take priority over libs found in search dirs.  */
+	 take priority over libs found in search dirs.  */
       if (global_found != NULL)
-  {
-    nn.name = global_found->filename;
-    if (gldarmelfb_linux_eabi_try_needed (&nn, TRUE))
-      continue;
-  }
+	{
+	  nn.name = global_found->filename;
+	  if (gldarmelfb_linux_eabi_try_needed (&nn, TRUE))
+	    continue;
+	}
 
       /* We need to find this file and include the symbol table.  We
-   want to search for the file in the same way that the dynamic
-   linker will search.  That means that we want to use
-   rpath_link, rpath, then the environment variable
-   LD_LIBRARY_PATH (native only), then the DT_RPATH/DT_RUNPATH
-   entries (native only), then the linker script LIB_SEARCH_DIRS.
-   We do not search using the -L arguments.
+	 want to search for the file in the same way that the dynamic
+	 linker will search.  That means that we want to use
+	 rpath_link, rpath, then the environment variable
+	 LD_LIBRARY_PATH (native only), then the DT_RPATH/DT_RUNPATH
+	 entries (native only), then the linker script LIB_SEARCH_DIRS.
+	 We do not search using the -L arguments.
 
-   We search twice.  The first time, we skip objects which may
-   introduce version mismatches.  The second time, we force
-   their use.  See gldarmelfb_linux_eabi_vercheck comment.  */
+	 We search twice.  The first time, we skip objects which may
+	 introduce version mismatches.  The second time, we force
+	 their use.  See gldarmelfb_linux_eabi_vercheck comment.  */
       for (force = 0; force < 2; force++)
-  {
-    size_t len;
-    search_dirs_type *search;
-    const char *lib_path;
-    struct bfd_link_needed_list *rp;
-    int found;
+	{
+	  size_t len;
+	  search_dirs_type *search;
+	  const char *lib_path;
+	  struct bfd_link_needed_list *rp;
+	  int found;
 
-    if (gldarmelfb_linux_eabi_search_needed (command_line.rpath_link,
-              &n, force))
-      break;
-    if (gldarmelfb_linux_eabi_search_needed (command_line.rpath,
-              &n, force))
-      break;
-    if (command_line.rpath_link == NULL
-        && command_line.rpath == NULL)
-      {
-        lib_path = (const char *) getenv ("LD_RUN_PATH");
-        if (gldarmelfb_linux_eabi_search_needed (lib_path, &n,
-                  force))
-    break;
-      }
-    lib_path = (const char *) getenv ("LD_LIBRARY_PATH");
-    if (gldarmelfb_linux_eabi_search_needed (lib_path, &n, force))
-      break;
-    found = 0;
-    rp = bfd_elf_get_runpath_list (link_info.output_bfd, &link_info);
-    for (; !found && rp != NULL; rp = rp->next)
-      {
-        char *tmpname = gldarmelfb_linux_eabi_add_sysroot (rp->name);
-        found = (rp->by == l->by
-           && gldarmelfb_linux_eabi_search_needed (tmpname,
-                    &n,
-                    force));
-        free (tmpname);
-      }
-    if (found)
-      break;
+	  if (gldarmelfb_linux_eabi_search_needed (command_line.rpath_link,
+						  &n, force))
+	    break;
+	  if (gldarmelfb_linux_eabi_search_needed (command_line.rpath,
+						  &n, force))
+	    break;
+	  if (command_line.rpath_link == NULL
+	      && command_line.rpath == NULL)
+	    {
+	      lib_path = (const char *) getenv ("LD_RUN_PATH");
+	      if (gldarmelfb_linux_eabi_search_needed (lib_path, &n,
+						      force))
+		break;
+	    }
+	  lib_path = (const char *) getenv ("LD_LIBRARY_PATH");
+	  if (gldarmelfb_linux_eabi_search_needed (lib_path, &n, force))
+	    break;
+	  found = 0;
+	  rp = bfd_elf_get_runpath_list (link_info.output_bfd, &link_info);
+	  for (; !found && rp != NULL; rp = rp->next)
+	    {
+	      char *tmpname = gldarmelfb_linux_eabi_add_sysroot (rp->name);
+	      found = (rp->by == l->by
+		       && gldarmelfb_linux_eabi_search_needed (tmpname,
+							      &n,
+							      force));
+	      free (tmpname);
+	    }
+	  if (found)
+	    break;
 
-    if (gldarmelfb_linux_eabi_check_ld_so_conf (l, force))
-      break;
+	  if (gldarmelfb_linux_eabi_check_ld_so_conf (l, force))
+	    break;
 
-    len = strlen (l->name);
-    for (search = search_head; search != NULL; search = search->next)
-      {
-        char *filename;
+	  len = strlen (l->name);
+	  for (search = search_head; search != NULL; search = search->next)
+	    {
+	      char *filename;
 
-        if (search->cmdline)
-    continue;
-        filename = (char *) xmalloc (strlen (search->name) + len + 2);
-        sprintf (filename, "%s/%s", search->name, l->name);
-        nn.name = filename;
-        if (gldarmelfb_linux_eabi_try_needed (&nn, force))
-    break;
-        free (filename);
-      }
-    if (search != NULL)
-      break;
-  }
+	      if (search->cmdline)
+		continue;
+	      filename = (char *) xmalloc (strlen (search->name) + len + 2);
+	      sprintf (filename, "%s/%s", search->name, l->name);
+	      nn.name = filename;
+	      if (gldarmelfb_linux_eabi_try_needed (&nn, force))
+		break;
+	      free (filename);
+	    }
+	  if (search != NULL)
+	    break;
+	}
 
       if (force < 2)
-  continue;
+	continue;
 
       einfo ("%P: warning: %s, needed by %B, not found (try using -rpath or -rpath-link)\n",
-       l->name, l->by);
+	     l->name, l->by);
     }
 }
 
@@ -1702,21 +1703,21 @@ gldarmelfb_linux_eabi_find_exp_assignment (etree_type *exp)
       /* Fall thru */
     case etree_assign:
       /* We call record_link_assignment even if the symbol is defined.
-   This is because if it is defined by a dynamic object, we
-   actually want to use the value defined by the linker script,
-   not the value from the dynamic object (because we are setting
-   symbols like etext).  If the symbol is defined by a regular
-   object, then, as it happens, calling record_link_assignment
-   will do no harm.  */
+	 This is because if it is defined by a dynamic object, we
+	 actually want to use the value defined by the linker script,
+	 not the value from the dynamic object (because we are setting
+	 symbols like etext).  If the symbol is defined by a regular
+	 object, then, as it happens, calling record_link_assignment
+	 will do no harm.  */
       if (strcmp (exp->assign.dst, ".") != 0)
-  {
-    if (!bfd_elf_record_link_assignment (link_info.output_bfd,
-                 &link_info,
-                 exp->assign.dst, provide,
-                 exp->assign.hidden))
-      einfo ("%P%F: failed to record assignment to %s: %E\n",
-       exp->assign.dst);
-  }
+	{
+	  if (!bfd_elf_record_link_assignment (link_info.output_bfd,
+					       &link_info,
+					       exp->assign.dst, provide,
+					       exp->assign.hidden))
+	    einfo ("%P%F: failed to record assignment to %s: %E\n",
+		   exp->assign.dst);
+	}
       gldarmelfb_linux_eabi_find_exp_assignment (exp->assign.src);
       break;
 
@@ -1769,28 +1770,28 @@ gldarmelfb_linux_eabi_append_to_separated_string (char **to, char *op_arg)
 
       /* First see whether OPTARG is already in the path.  */
       do
-  {
-    if (strncmp (op_arg, cp, op_arg_len) == 0
-        && (cp[op_arg_len] == 0
-      || cp[op_arg_len] == config.rpath_separator))
-      /* We found it.  */
-      break;
+	{
+	  if (strncmp (op_arg, cp, op_arg_len) == 0
+	      && (cp[op_arg_len] == 0
+		  || cp[op_arg_len] == config.rpath_separator))
+	    /* We found it.  */
+	    break;
 
-    /* Not yet found.  */
-    cp = strchr (cp, config.rpath_separator);
-    if (cp != NULL)
-      ++cp;
-  }
+	  /* Not yet found.  */
+	  cp = strchr (cp, config.rpath_separator);
+	  if (cp != NULL)
+	    ++cp;
+	}
       while (cp != NULL);
 
       if (cp == NULL)
-  {
-    buf = xmalloc (to_len + op_arg_len + 2);
-    sprintf (buf, "%s%c%s", *to,
-       config.rpath_separator, op_arg);
-    free (*to);
-    *to = buf;
-  }
+	{
+	  buf = xmalloc (to_len + op_arg_len + 2);
+	  sprintf (buf, "%s%c%s", *to,
+		   config.rpath_separator, op_arg);
+	  free (*to);
+	  *to = buf;
+	}
     }
 }
 
@@ -1804,13 +1805,37 @@ gldarmelfb_linux_eabi_before_allocation (void)
   asection *sinterp;
   bfd *abfd;
 
-  if (link_info.hash->type == bfd_link_elf_hash_table)
-    _bfd_elf_tls_setup (link_info.output_bfd, &link_info);
+  if (is_elf_hash_table (link_info.hash))
+    {
+      _bfd_elf_tls_setup (link_info.output_bfd, &link_info);
 
-  /* If we are going to make any variable assignments, we need to let
-     the ELF backend know about them in case the variables are
-     referred to by dynamic objects.  */
-  lang_for_each_statement (gldarmelfb_linux_eabi_find_statement_assignment);
+      /* Make __ehdr_start hidden if it has been referenced, to
+	 prevent the symbol from being dynamic.  */
+      if (!link_info.relocatable)
+       {
+         struct elf_link_hash_entry *h
+           = elf_link_hash_lookup (elf_hash_table (&link_info), "__ehdr_start",
+                                   FALSE, FALSE, TRUE);
+
+         /* Only adjust the export class if the symbol was referenced
+            and not defined, otherwise leave it alone.  */
+         if (h != NULL
+             && (h->root.type == bfd_link_hash_new
+                 || h->root.type == bfd_link_hash_undefined
+                 || h->root.type == bfd_link_hash_undefweak
+                 || h->root.type == bfd_link_hash_common))
+           {
+             _bfd_elf_link_hash_hide_symbol (&link_info, h, TRUE);
+             if (ELF_ST_VISIBILITY (h->other) != STV_INTERNAL)
+               h->other = (h->other & ~ELF_ST_VISIBILITY (-1)) | STV_HIDDEN;
+           }
+       }
+
+      /* If we are going to make any variable assignments, we need to
+	 let the ELF backend know about them in case the variables are
+	 referred to by dynamic objects.  */
+      lang_for_each_statement (gldarmelfb_linux_eabi_find_statement_assignment);
+    }
 
   /* Let the ELF backend work out the sizes of any sections required
      by dynamic linking.  */
@@ -1821,38 +1846,38 @@ gldarmelfb_linux_eabi_before_allocation (void)
   for (abfd = link_info.input_bfds; abfd; abfd = abfd->link_next)
     if (bfd_get_flavour (abfd) == bfd_target_elf_flavour)
       {
-  const char *audit_libs = elf_dt_audit (abfd);
+	const char *audit_libs = elf_dt_audit (abfd);
 
-  /* If the input bfd contains an audit entry, we need to add it as
-     a dep audit entry.  */
-  if (audit_libs && *audit_libs != '\0')
-    {
-      char *cp = xstrdup (audit_libs);
-      do
-        {
-    int more = 0;
-    char *cp2 = strchr (cp, config.rpath_separator);
+	/* If the input bfd contains an audit entry, we need to add it as
+	   a dep audit entry.  */
+	if (audit_libs && *audit_libs != '\0')
+	  {
+	    char *cp = xstrdup (audit_libs);
+	    do
+	      {
+		int more = 0;
+		char *cp2 = strchr (cp, config.rpath_separator);
 
-    if (cp2)
-      {
-        *cp2 = '\0';
-        more = 1;
-      }
+		if (cp2)
+		  {
+		    *cp2 = '\0';
+		    more = 1;
+		  }
 
-    if (cp != NULL && *cp != '\0')
-      gldarmelfb_linux_eabi_append_to_separated_string (&depaudit, cp);
+		if (cp != NULL && *cp != '\0')
+		  gldarmelfb_linux_eabi_append_to_separated_string (&depaudit, cp);
 
-    cp = more ? ++cp2 : NULL;
-        }
-      while (cp != NULL);
-    }
+		cp = more ? ++cp2 : NULL;
+	      }
+	    while (cp != NULL);
+	  }
       }
 
   if (! (bfd_elf_size_dynamic_sections
-   (link_info.output_bfd, command_line.soname, rpath,
-    command_line.filter_shlib, audit, depaudit,
-    (const char * const *) command_line.auxiliary_filters,
-    &link_info, &sinterp)))
+	 (link_info.output_bfd, command_line.soname, rpath,
+	  command_line.filter_shlib, audit, depaudit,
+	  (const char * const *) command_line.auxiliary_filters,
+	  &link_info, &sinterp)))
     einfo ("%P%F: failed to set dynamic section sizes: %E\n");
 
 
@@ -1872,46 +1897,46 @@ gldarmelfb_linux_eabi_before_allocation (void)
   {
     LANG_FOR_EACH_INPUT_STATEMENT (is)
       {
-  asection *s;
-  bfd_size_type sz;
-  char *msg;
-  bfd_boolean ret;
+	asection *s;
+	bfd_size_type sz;
+	char *msg;
+	bfd_boolean ret;
 
-  if (is->flags.just_syms)
-    continue;
+	if (is->flags.just_syms)
+	  continue;
 
-  s = bfd_get_section_by_name (is->the_bfd, ".gnu.warning");
-  if (s == NULL)
-    continue;
+	s = bfd_get_section_by_name (is->the_bfd, ".gnu.warning");
+	if (s == NULL)
+	  continue;
 
-  sz = s->size;
-  msg = (char *) xmalloc ((size_t) (sz + 1));
-  if (! bfd_get_section_contents (is->the_bfd, s, msg,
-          (file_ptr) 0, sz))
-    einfo ("%F%B: Can't read contents of section .gnu.warning: %E\n",
-     is->the_bfd);
-  msg[sz] = '\0';
-  ret = link_info.callbacks->warning (&link_info, msg,
-              (const char *) NULL,
-              is->the_bfd, (asection *) NULL,
-              (bfd_vma) 0);
-  ASSERT (ret);
-  free (msg);
+	sz = s->size;
+	msg = (char *) xmalloc ((size_t) (sz + 1));
+	if (! bfd_get_section_contents (is->the_bfd, s,	msg,
+					(file_ptr) 0, sz))
+	  einfo ("%F%B: Can't read contents of section .gnu.warning: %E\n",
+		 is->the_bfd);
+	msg[sz] = '\0';
+	ret = link_info.callbacks->warning (&link_info, msg,
+					    (const char *) NULL,
+					    is->the_bfd, (asection *) NULL,
+					    (bfd_vma) 0);
+	ASSERT (ret);
+	free (msg);
 
-  /* Clobber the section size, so that we don't waste space
-     copying the warning into the output file.  If we've already
-     sized the output section, adjust its size.  The adjustment
-     is on rawsize because targets that size sections early will
-     have called lang_reset_memory_regions after sizing.  */
-  if (s->output_section != NULL
-      && s->output_section->rawsize >= s->size)
-    s->output_section->rawsize -= s->size;
+	/* Clobber the section size, so that we don't waste space
+	   copying the warning into the output file.  If we've already
+	   sized the output section, adjust its size.  The adjustment
+	   is on rawsize because targets that size sections early will
+	   have called lang_reset_memory_regions after sizing.  */
+	if (s->output_section != NULL
+	    && s->output_section->rawsize >= s->size)
+	  s->output_section->rawsize -= s->size;
 
-  s->size = 0;
+	s->size = 0;
 
-  /* Also set SEC_EXCLUDE, so that local symbols defined in the
-     warning section don't get copied to the output.  */
-  s->flags |= SEC_EXCLUDE | SEC_KEEP;
+	/* Also set SEC_EXCLUDE, so that local symbols defined in the
+	   warning section don't get copied to the output.  */
+	s->flags |= SEC_EXCLUDE | SEC_KEEP;
       }
   }
 
@@ -1942,12 +1967,12 @@ gldarmelfb_linux_eabi_open_dynamic_archive
      is defined, but it does not seem worth the headache to optimize
      away those two bytes of space.  */
   string = (char *) xmalloc (strlen (search->name)
-           + strlen (filename)
-           + strlen (arch)
+			     + strlen (filename)
+			     + strlen (arch)
 #ifdef EXTRA_SHLIB_EXTENSION
-           + strlen (EXTRA_SHLIB_EXTENSION)
+			     + strlen (EXTRA_SHLIB_EXTENSION)
 #endif
-           + sizeof "/lib.so");
+			     + sizeof "/lib.so");
 
   sprintf (string, "%s/lib%s%s.so", search->name, filename, arch);
 
@@ -1957,7 +1982,7 @@ gldarmelfb_linux_eabi_open_dynamic_archive
   if (! ldfile_try_open_bfd (string, entry))
     {
       sprintf (string, "%s/lib%s%s%s", search->name,
-         filename, arch, EXTRA_SHLIB_EXTENSION);
+	       filename, arch, EXTRA_SHLIB_EXTENSION);
 #endif
 
   if (! ldfile_try_open_bfd (string, entry))
@@ -1990,7 +2015,7 @@ gldarmelfb_linux_eabi_open_dynamic_archive
       ASSERT (entry->flags.maybe_archive && entry->flags.search_dirs);
 
       /* Rather than duplicating the logic above.  Just use the
-   filename we recorded earlier.  */
+	 filename we recorded earlier.  */
 
       filename = lbasename (entry->filename);
       bfd_elf_set_dt_needed_name (entry->the_bfd, filename);
@@ -2018,36 +2043,36 @@ output_rel_find (asection *sec, int isdyn)
        lookup = lookup->next)
     {
       if (lookup->constraint >= 0
-    && CONST_STRNEQ (lookup->name, ".rel"))
-  {
-    int lookrela = lookup->name[4] == 'a';
+	  && CONST_STRNEQ (lookup->name, ".rel"))
+	{
+	  int lookrela = lookup->name[4] == 'a';
 
-    /* .rel.dyn must come before all other reloc sections, to suit
-       GNU ld.so.  */
-    if (isdyn)
-      break;
+	  /* .rel.dyn must come before all other reloc sections, to suit
+	     GNU ld.so.  */
+	  if (isdyn)
+	    break;
 
-    /* Don't place after .rel.plt as doing so results in wrong
-       dynamic tags.  */
-    if (strcmp (".plt", lookup->name + 4 + lookrela) == 0)
-      break;
+	  /* Don't place after .rel.plt as doing so results in wrong
+	     dynamic tags.  */
+	  if (strcmp (".plt", lookup->name + 4 + lookrela) == 0)
+	    break;
 
-    if (rela == lookrela || last_rel == NULL)
-      last_rel = lookup;
-    if ((rela == lookrela || last_rel_alloc == NULL)
-        && lookup->bfd_section != NULL
-        && (lookup->bfd_section->flags & SEC_ALLOC) != 0)
-      last_rel_alloc = lookup;
-  }
+	  if (rela == lookrela || last_rel == NULL)
+	    last_rel = lookup;
+	  if ((rela == lookrela || last_rel_alloc == NULL)
+	      && lookup->bfd_section != NULL
+	      && (lookup->bfd_section->flags & SEC_ALLOC) != 0)
+	    last_rel_alloc = lookup;
+	}
 
       last = lookup;
       if (lookup->bfd_section != NULL
-    && (lookup->bfd_section->flags & SEC_ALLOC) != 0)
-  {
-    last_alloc = lookup;
-    if ((lookup->bfd_section->flags & SEC_READONLY) != 0)
-      last_ro_alloc = lookup;
-  }
+	  && (lookup->bfd_section->flags & SEC_ALLOC) != 0)
+	{
+	  last_alloc = lookup;
+	  if ((lookup->bfd_section->flags & SEC_READONLY) != 0)
+	    last_ro_alloc = lookup;
+	}
     }
 
   if (last_rel_alloc)
@@ -2065,44 +2090,41 @@ output_rel_find (asection *sec, int isdyn)
   return last;
 }
 
-static int orphan_init_done = 0;
-
 /* Place an orphan section.  We use this to put random SHF_ALLOC
    sections in the right segment.  */
 
 static lang_output_section_statement_type *
 gldarmelfb_linux_eabi_place_orphan (asection *s,
-           const char *secname,
-           int constraint)
+				   const char *secname,
+				   int constraint)
 {
-  static struct orphan_save orig_hold[] =
+  static struct orphan_save hold[] =
     {
       { ".text",
-  SEC_HAS_CONTENTS | SEC_ALLOC | SEC_LOAD | SEC_READONLY | SEC_CODE,
-  0, 0, 0, 0 },
+	SEC_HAS_CONTENTS | SEC_ALLOC | SEC_LOAD | SEC_READONLY | SEC_CODE,
+	0, 0, 0, 0 },
       { ".rodata",
-  SEC_HAS_CONTENTS | SEC_ALLOC | SEC_LOAD | SEC_READONLY | SEC_DATA,
-  0, 0, 0, 0 },
+	SEC_HAS_CONTENTS | SEC_ALLOC | SEC_LOAD | SEC_READONLY | SEC_DATA,
+	0, 0, 0, 0 },
       { ".data",
-  SEC_HAS_CONTENTS | SEC_ALLOC | SEC_LOAD | SEC_DATA,
-  0, 0, 0, 0 },
+	SEC_HAS_CONTENTS | SEC_ALLOC | SEC_LOAD | SEC_DATA,
+	0, 0, 0, 0 },
       { ".bss",
-  SEC_ALLOC,
-  0, 0, 0, 0 },
+	SEC_ALLOC,
+	0, 0, 0, 0 },
       { 0,
-  SEC_HAS_CONTENTS | SEC_ALLOC | SEC_LOAD | SEC_READONLY | SEC_DATA,
-  0, 0, 0, 0 },
+	SEC_HAS_CONTENTS | SEC_ALLOC | SEC_LOAD | SEC_READONLY | SEC_DATA,
+	0, 0, 0, 0 },
       { ".interp",
-  SEC_HAS_CONTENTS | SEC_ALLOC | SEC_LOAD | SEC_READONLY | SEC_DATA,
-  0, 0, 0, 0 },
+	SEC_HAS_CONTENTS | SEC_ALLOC | SEC_LOAD | SEC_READONLY | SEC_DATA,
+	0, 0, 0, 0 },
       { ".sdata",
-  SEC_HAS_CONTENTS | SEC_ALLOC | SEC_LOAD | SEC_DATA | SEC_SMALL_DATA,
-  0, 0, 0, 0 },
+	SEC_HAS_CONTENTS | SEC_ALLOC | SEC_LOAD | SEC_DATA | SEC_SMALL_DATA,
+	0, 0, 0, 0 },
       { ".comment",
-  SEC_HAS_CONTENTS,
-  0, 0, 0, 0 },
+	SEC_HAS_CONTENTS,
+	0, 0, 0, 0 },
     };
-  static struct orphan_save hold[ARRAY_SIZE (orig_hold)];
   enum orphan_save_index
     {
       orphan_text = 0,
@@ -2114,6 +2136,7 @@ gldarmelfb_linux_eabi_place_orphan (asection *s,
       orphan_sdata,
       orphan_nonalloc
     };
+  static int orphan_init_done = 0;
   struct orphan_save *place;
   lang_output_section_statement_type *after;
   lang_output_section_statement_type *os;
@@ -2122,68 +2145,62 @@ gldarmelfb_linux_eabi_place_orphan (asection *s,
   int iself = s->owner->xvec->flavour == bfd_target_elf_flavour;
   unsigned int sh_type = iself ? elf_section_type (s) : SHT_NULL;
 
-  /* Orphaned sharable sections won't have correct page
-     requirements.  */
-  if (elf_section_flags (s) & SHF_GNU_SHARABLE)
-    einfo ("%F%P: unable to place orphaned sharable section %A (%B)\n",
-     s, s->owner);
-
   if (! link_info.relocatable
       && link_info.combreloc
       && (s->flags & SEC_ALLOC))
     {
       if (iself)
-  switch (sh_type)
-    {
-    case SHT_RELA:
-      secname = ".rela.dyn";
-      isdyn = 1;
-      break;
-    case SHT_REL:
-      secname = ".rel.dyn";
-      isdyn = 1;
-      break;
-    default:
-      break;
-    }
+	switch (sh_type)
+	  {
+	  case SHT_RELA:
+	    secname = ".rela.dyn";
+	    isdyn = 1;
+	    break;
+	  case SHT_REL:
+	    secname = ".rel.dyn";
+	    isdyn = 1;
+	    break;
+	  default:
+	    break;
+	  }
       else if (CONST_STRNEQ (secname, ".rel"))
-  {
-    secname = secname[4] == 'a' ? ".rela.dyn" : ".rel.dyn";
-    isdyn = 1;
-  }
+	{
+	  secname = secname[4] == 'a' ? ".rela.dyn" : ".rel.dyn";
+	  isdyn = 1;
+	}
     }
 
   /* Look through the script to see where to place this section.  */
   if (constraint == 0)
     for (os = lang_output_section_find (secname);
-   os != NULL;
-   os = next_matching_output_section_statement (os, 0))
+	 os != NULL;
+	 os = next_matching_output_section_statement (os, 0))
       {
-  /* If we don't match an existing output section, tell
-     lang_insert_orphan to create a new output section.  */
-  constraint = SPECIAL;
+	/* If we don't match an existing output section, tell
+	   lang_insert_orphan to create a new output section.  */
+	constraint = SPECIAL;
 
-  if (os->bfd_section != NULL
-      && (os->bfd_section->flags == 0
-    || (_bfd_elf_match_sections_by_type (link_info.output_bfd,
-                 os->bfd_section,
-                 s->owner, s)
-        && ((s->flags ^ os->bfd_section->flags)
-      & (SEC_LOAD | SEC_ALLOC)) == 0)))
-    {
-      /* We already have an output section statement with this
-         name, and its bfd section has compatible flags.
-         If the section already exists but does not have any flags
-         set, then it has been created by the linker, probably as a
-         result of a --section-start command line switch.  */
-      lang_add_section (&os->children, s, NULL, os);
-      return os;
-    }
+	if (os->bfd_section != NULL
+	    && (os->bfd_section->flags == 0
+		|| (_bfd_elf_match_sections_by_type (link_info.output_bfd,
+						     os->bfd_section,
+						     s->owner, s)
+		    && ((s->flags ^ os->bfd_section->flags)
+			& (SEC_LOAD | SEC_ALLOC)) == 0)))
+	  {
+	    /* We already have an output section statement with this
+	       name, and its bfd section has compatible flags.
+	       If the section already exists but does not have any flags
+	       set, then it has been created by the linker, probably as a
+	       result of a --section-start command line switch.  */
+	    lang_add_section (&os->children, s, NULL, os);
+	    return os;
+	  }
 
-  /* Save unused output sections in case we can match them
-     against orphans later.  */
-  if (os->bfd_section == NULL)
-    match_by_name = os;
+	/* Save unused output sections in case we can match them
+	   against orphans later.  */
+	if (os->bfd_section == NULL)
+	  match_by_name = os;
       }
 
   /* If we didn't match an active output section, see if we matched an
@@ -2196,22 +2213,15 @@ gldarmelfb_linux_eabi_place_orphan (asection *s,
 
   if (!orphan_init_done)
     {
-      struct orphan_save *ho, *horig;
+      struct orphan_save *ho;
 
       for (ho = hold; ho < hold + sizeof (hold) / sizeof (hold[0]); ++ho)
-      for (ho = hold, horig = orig_hold;
-     ho < hold + ARRAY_SIZE (hold);
-     ++ho, ++horig)
-  {
-    *ho = *horig;
-    if (ho->name != NULL)
-  if (ho->name != NULL)
-    {
-      ho->os = lang_output_section_find (ho->name);
-      if (ho->os != NULL && ho->os->flags == 0)
-        ho->os->flags = ho->flags;
-    }
-  }
+	if (ho->name != NULL)
+	  {
+	    ho->os = lang_output_section_find (ho->name);
+	    if (ho->os != NULL && ho->os->flags == 0)
+	      ho->os->flags = ho->flags;
+	  }
       orphan_init_done = 1;
     }
 
@@ -2239,8 +2249,8 @@ gldarmelfb_linux_eabi_place_orphan (asection *s,
   else if ((s->flags & SEC_ALLOC) == 0)
     ;
   else if ((s->flags & SEC_LOAD) != 0
-     && ((iself && sh_type == SHT_NOTE)
-         || (!iself && CONST_STRNEQ (secname, ".note"))))
+	   && ((iself && sh_type == SHT_NOTE)
+	       || (!iself && CONST_STRNEQ (secname, ".note"))))
     place = &hold[orphan_interp];
   else if ((s->flags & (SEC_LOAD | SEC_HAS_CONTENTS | SEC_THREAD_LOCAL)) == 0)
     place = &hold[orphan_bss];
@@ -2249,8 +2259,8 @@ gldarmelfb_linux_eabi_place_orphan (asection *s,
   else if ((s->flags & SEC_READONLY) == 0)
     place = &hold[orphan_data];
   else if (((iself && (sh_type == SHT_RELA || sh_type == SHT_REL))
-      || (!iself && CONST_STRNEQ (secname, ".rel")))
-     && (s->flags & SEC_LOAD) != 0)
+	    || (!iself && CONST_STRNEQ (secname, ".rel")))
+	   && (s->flags & SEC_LOAD) != 0)
     place = &hold[orphan_rel];
   else if ((s->flags & SEC_CODE) == 0)
     place = &hold[orphan_rodata];
@@ -2261,34 +2271,22 @@ gldarmelfb_linux_eabi_place_orphan (asection *s,
   if (place != NULL)
     {
       if (place->os == NULL)
-  {
-    if (place->name != NULL)
-      place->os = lang_output_section_find (place->name);
-    else
-      place->os = output_rel_find (s, isdyn);
-  }
+	{
+	  if (place->name != NULL)
+	    place->os = lang_output_section_find (place->name);
+	  else
+	    place->os = output_rel_find (s, isdyn);
+	}
       after = place->os;
       if (after == NULL)
-  after = lang_output_section_find_by_flags
-    (s, &place->os, _bfd_elf_match_sections_by_type);
+	after = lang_output_section_find_by_flags
+	  (s, &place->os, _bfd_elf_match_sections_by_type);
       if (after == NULL)
-  /* *ABS* is always the first output section statement.  */
-  after = &lang_output_section_statement.head->output_section_statement;
+	/* *ABS* is always the first output section statement.  */
+	after = &lang_output_section_statement.head->output_section_statement;
     }
 
   return lang_insert_orphan (s, secname, constraint, after, place, NULL, NULL);
-}
-
-/* Final emulation specific call.  */
-
-static void
-gldarmelfb_linux_eabi_finish (void)
-{
-  /* Support the object-only output.  */
-  if (link_info.emit_gnu_object_only)
-    orphan_init_done = 0;
-
-  finish_default ();
 }
 
 static char *
@@ -2300,7 +2298,7 @@ gldarmelfb_linux_eabi_get_script (int *isfile)
     return
 "/* Script for ld -Ur: link w/out relocation, do create constructors */\n\
 OUTPUT_FORMAT(\"elf32-bigarm\", \"elf32-bigarm\",\n\
-        \"elf32-littlearm\")\n\
+	      \"elf32-littlearm\")\n\
 OUTPUT_ARCH(arm)\n\
  /* For some reason, the Solaris linker makes bad executables\n\
   if gld -r is used and the intermediate file has sections starting\n\
@@ -2330,10 +2328,10 @@ SECTIONS\n\
   .rela.data.rel.ro 0 : { *(.rela.data.rel.ro) }\n\
   .rel.data     0 : { *(.rel.data) }\n\
   .rela.data    0 : { *(.rela.data) }\n\
-  .rel.tdata  0 : { *(.rel.tdata) }\n\
-  .rela.tdata 0 : { *(.rela.tdata) }\n\
-  .rel.tbss 0 : { *(.rel.tbss) }\n\
-  .rela.tbss  0 : { *(.rela.tbss) }\n\
+  .rel.tdata	0 : { *(.rel.tdata) }\n\
+  .rela.tdata	0 : { *(.rela.tdata) }\n\
+  .rel.tbss	0 : { *(.rel.tbss) }\n\
+  .rela.tbss	0 : { *(.rela.tbss) }\n\
   .rel.ctors    0 : { *(.rel.ctors) }\n\
   .rela.ctors   0 : { *(.rela.ctors) }\n\
   .rel.dtors    0 : { *(.rel.dtors) }\n\
@@ -2392,8 +2390,8 @@ SECTIONS\n\
   .gcc_except_table 0 : ONLY_IF_RW { *(.gcc_except_table .gcc_except_table.*) }\n\
   .exception_ranges 0 : ONLY_IF_RW { *(.exception_ranges .exception_ranges*) }\n\
   /* Thread Local Storage sections  */\n\
-  .tdata  0 : { *(.tdata) }\n\
-  .tbss   0 : { *(.tbss) }\n\
+  .tdata	0 : { *(.tdata) }\n\
+  .tbss		0 : { *(.tbss) }\n\
   .preinit_array   0 :\n\
   {\n\
     KEEP (*(.preinit_array))\n\
@@ -2441,7 +2439,7 @@ SECTIONS\n\
   /* DWARF 2 */\n\
   .debug_info     0 : { *(.debug_info) }\n\
   .debug_abbrev   0 : { *(.debug_abbrev) }\n\
-  .debug_line     0 : { *(.debug_line) }\n\
+  .debug_line     0 : { *(.debug_line .debug_line.* .debug_line_end ) }\n\
   .debug_frame    0 : { *(.debug_frame) }\n\
   .debug_str      0 : { *(.debug_str) }\n\
   .debug_loc      0 : { *(.debug_loc) }\n\
@@ -2462,7 +2460,7 @@ SECTIONS\n\
   ; else if (link_info.relocatable) return
 "/* Script for ld -r: link without relocation */\n\
 OUTPUT_FORMAT(\"elf32-bigarm\", \"elf32-bigarm\",\n\
-        \"elf32-littlearm\")\n\
+	      \"elf32-littlearm\")\n\
 OUTPUT_ARCH(arm)\n\
  /* For some reason, the Solaris linker makes bad executables\n\
   if gld -r is used and the intermediate file has sections starting\n\
@@ -2492,10 +2490,10 @@ SECTIONS\n\
   .rela.data.rel.ro 0 : { *(.rela.data.rel.ro) }\n\
   .rel.data     0 : { *(.rel.data) }\n\
   .rela.data    0 : { *(.rela.data) }\n\
-  .rel.tdata  0 : { *(.rel.tdata) }\n\
-  .rela.tdata 0 : { *(.rela.tdata) }\n\
-  .rel.tbss 0 : { *(.rel.tbss) }\n\
-  .rela.tbss  0 : { *(.rela.tbss) }\n\
+  .rel.tdata	0 : { *(.rel.tdata) }\n\
+  .rela.tdata	0 : { *(.rela.tdata) }\n\
+  .rel.tbss	0 : { *(.rel.tbss) }\n\
+  .rela.tbss	0 : { *(.rela.tbss) }\n\
   .rel.ctors    0 : { *(.rel.ctors) }\n\
   .rela.ctors   0 : { *(.rela.ctors) }\n\
   .rel.dtors    0 : { *(.rel.dtors) }\n\
@@ -2554,8 +2552,8 @@ SECTIONS\n\
   .gcc_except_table 0 : ONLY_IF_RW { *(.gcc_except_table .gcc_except_table.*) }\n\
   .exception_ranges 0 : ONLY_IF_RW { *(.exception_ranges .exception_ranges*) }\n\
   /* Thread Local Storage sections  */\n\
-  .tdata  0 : { *(.tdata) }\n\
-  .tbss   0 : { *(.tbss) }\n\
+  .tdata	0 : { *(.tdata) }\n\
+  .tbss		0 : { *(.tbss) }\n\
   .preinit_array   0 :\n\
   {\n\
     KEEP (*(.preinit_array))\n\
@@ -2602,7 +2600,7 @@ SECTIONS\n\
   /* DWARF 2 */\n\
   .debug_info     0 : { *(.debug_info) }\n\
   .debug_abbrev   0 : { *(.debug_abbrev) }\n\
-  .debug_line     0 : { *(.debug_line) }\n\
+  .debug_line     0 : { *(.debug_line .debug_line.* .debug_line_end ) }\n\
   .debug_frame    0 : { *(.debug_frame) }\n\
   .debug_str      0 : { *(.debug_str) }\n\
   .debug_loc      0 : { *(.debug_loc) }\n\
@@ -2623,7 +2621,7 @@ SECTIONS\n\
   ; else if (!config.text_read_only) return
 "/* Script for -N: mix text and data on same page; don't align data */\n\
 OUTPUT_FORMAT(\"elf32-bigarm\", \"elf32-bigarm\",\n\
-        \"elf32-littlearm\")\n\
+	      \"elf32-littlearm\")\n\
 OUTPUT_ARCH(arm)\n\
 ENTRY(_start)\n\
 SEARCH_DIR(\"/system/arm-linux-androideabi/lib\"); SEARCH_DIR(\"/system/lib\"); SEARCH_DIR(\"/usr/local/lib\"); SEARCH_DIR(\"/lib\"); SEARCH_DIR(\"/usr/lib\");\n\
@@ -2652,10 +2650,10 @@ SECTIONS\n\
   .rela.data.rel.ro   : { *(.rela.data.rel.ro .rela.data.rel.ro.* .rela.gnu.linkonce.d.rel.ro.*) }\n\
   .rel.data       : { *(.rel.data .rel.data.* .rel.gnu.linkonce.d.*) }\n\
   .rela.data      : { *(.rela.data .rela.data.* .rela.gnu.linkonce.d.*) }\n\
-  .rel.tdata    : { *(.rel.tdata .rel.tdata.* .rel.gnu.linkonce.td.*) }\n\
-  .rela.tdata   : { *(.rela.tdata .rela.tdata.* .rela.gnu.linkonce.td.*) }\n\
-  .rel.tbss   : { *(.rel.tbss .rel.tbss.* .rel.gnu.linkonce.tb.*) }\n\
-  .rela.tbss    : { *(.rela.tbss .rela.tbss.* .rela.gnu.linkonce.tb.*) }\n\
+  .rel.tdata	  : { *(.rel.tdata .rel.tdata.* .rel.gnu.linkonce.td.*) }\n\
+  .rela.tdata	  : { *(.rela.tdata .rela.tdata.* .rela.gnu.linkonce.td.*) }\n\
+  .rel.tbss	  : { *(.rel.tbss .rel.tbss.* .rel.gnu.linkonce.tb.*) }\n\
+  .rela.tbss	  : { *(.rela.tbss .rela.tbss.* .rela.gnu.linkonce.tb.*) }\n\
   .rel.ctors      : { *(.rel.ctors) }\n\
   .rela.ctors     : { *(.rela.ctors) }\n\
   .rel.dtors      : { *(.rel.dtors) }\n\
@@ -2692,7 +2690,7 @@ SECTIONS\n\
   .iplt           : { *(.iplt) }\n\
   .text           :\n\
   {\n\
-    *(.text.unlikely .text.*_unlikely)\n\
+    *(.text.unlikely .text.*_unlikely .text.unlikely.*)\n\
     *(.text.exit .text.exit.*)\n\
     *(.text.startup .text.startup.*)\n\
     *(.text.hot .text.hot.*)\n"
@@ -2729,8 +2727,8 @@ SECTIONS\n\
   .gcc_except_table   : ONLY_IF_RW { *(.gcc_except_table .gcc_except_table.*) }\n\
   .exception_ranges   : ONLY_IF_RW { *(.exception_ranges .exception_ranges*) }\n\
   /* Thread Local Storage sections  */\n\
-  .tdata    : { *(.tdata .tdata.* .gnu.linkonce.td.*) }\n\
-  .tbss     : { *(.tbss .tbss.* .gnu.linkonce.tb.*) *(.tcommon) }\n\
+  .tdata	  : { *(.tdata .tdata.* .gnu.linkonce.td.*) }\n\
+  .tbss		  : { *(.tbss .tbss.* .gnu.linkonce.tb.*) *(.tcommon) }\n\
   .preinit_array     :\n\
   {\n\
     PROVIDE_HIDDEN (__preinit_array_start = .);\n\
@@ -2836,7 +2834,7 @@ SECTIONS\n\
   /* DWARF 2 */\n\
   .debug_info     0 : { *(.debug_info .gnu.linkonce.wi.*) }\n\
   .debug_abbrev   0 : { *(.debug_abbrev) }\n\
-  .debug_line     0 : { *(.debug_line) }\n\
+  .debug_line     0 : { *(.debug_line .debug_line.* .debug_line_end ) }\n\
   .debug_frame    0 : { *(.debug_frame) }\n\
   .debug_str      0 : { *(.debug_str) }\n\
   .debug_loc      0 : { *(.debug_loc) }\n\
@@ -2853,12 +2851,12 @@ SECTIONS\n\
   .debug_macro    0 : { *(.debug_macro) }\n\
   .gnu.attributes 0 : { KEEP (*(.gnu.attributes)) }\n\
   .note.gnu.arm.ident 0 : { KEEP (*(.note.gnu.arm.ident)) }\n\
-  /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) *(.gnu_object_only) }\n\
+  /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) }\n\
 }\n\n"
   ; else if (!config.magic_demand_paged) return
 "/* Script for -n: mix text and data on same page */\n\
 OUTPUT_FORMAT(\"elf32-bigarm\", \"elf32-bigarm\",\n\
-        \"elf32-littlearm\")\n\
+	      \"elf32-littlearm\")\n\
 OUTPUT_ARCH(arm)\n\
 ENTRY(_start)\n\
 SEARCH_DIR(\"/system/arm-linux-androideabi/lib\"); SEARCH_DIR(\"/system/lib\"); SEARCH_DIR(\"/usr/local/lib\"); SEARCH_DIR(\"/lib\"); SEARCH_DIR(\"/usr/lib\");\n\
@@ -2887,10 +2885,10 @@ SECTIONS\n\
   .rela.data.rel.ro   : { *(.rela.data.rel.ro .rela.data.rel.ro.* .rela.gnu.linkonce.d.rel.ro.*) }\n\
   .rel.data       : { *(.rel.data .rel.data.* .rel.gnu.linkonce.d.*) }\n\
   .rela.data      : { *(.rela.data .rela.data.* .rela.gnu.linkonce.d.*) }\n\
-  .rel.tdata    : { *(.rel.tdata .rel.tdata.* .rel.gnu.linkonce.td.*) }\n\
-  .rela.tdata   : { *(.rela.tdata .rela.tdata.* .rela.gnu.linkonce.td.*) }\n\
-  .rel.tbss   : { *(.rel.tbss .rel.tbss.* .rel.gnu.linkonce.tb.*) }\n\
-  .rela.tbss    : { *(.rela.tbss .rela.tbss.* .rela.gnu.linkonce.tb.*) }\n\
+  .rel.tdata	  : { *(.rel.tdata .rel.tdata.* .rel.gnu.linkonce.td.*) }\n\
+  .rela.tdata	  : { *(.rela.tdata .rela.tdata.* .rela.gnu.linkonce.td.*) }\n\
+  .rel.tbss	  : { *(.rel.tbss .rel.tbss.* .rel.gnu.linkonce.tb.*) }\n\
+  .rela.tbss	  : { *(.rela.tbss .rela.tbss.* .rela.gnu.linkonce.tb.*) }\n\
   .rel.ctors      : { *(.rel.ctors) }\n\
   .rela.ctors     : { *(.rela.ctors) }\n\
   .rel.dtors      : { *(.rel.dtors) }\n\
@@ -2927,7 +2925,7 @@ SECTIONS\n\
   .iplt           : { *(.iplt) }\n\
   .text           :\n\
   {\n\
-    *(.text.unlikely .text.*_unlikely)\n\
+    *(.text.unlikely .text.*_unlikely .text.unlikely.*)\n\
     *(.text.exit .text.exit.*)\n\
     *(.text.startup .text.startup.*)\n\
     *(.text.hot .text.hot.*)\n"
@@ -2964,8 +2962,8 @@ SECTIONS\n\
   .gcc_except_table   : ONLY_IF_RW { *(.gcc_except_table .gcc_except_table.*) }\n\
   .exception_ranges   : ONLY_IF_RW { *(.exception_ranges .exception_ranges*) }\n\
   /* Thread Local Storage sections  */\n\
-  .tdata    : { *(.tdata .tdata.* .gnu.linkonce.td.*) }\n\
-  .tbss     : { *(.tbss .tbss.* .gnu.linkonce.tb.*) *(.tcommon) }\n\
+  .tdata	  : { *(.tdata .tdata.* .gnu.linkonce.td.*) }\n\
+  .tbss		  : { *(.tbss .tbss.* .gnu.linkonce.tb.*) *(.tcommon) }\n\
   .preinit_array     :\n\
   {\n\
     PROVIDE_HIDDEN (__preinit_array_start = .);\n\
@@ -3073,7 +3071,7 @@ SECTIONS\n\
   /* DWARF 2 */\n\
   .debug_info     0 : { *(.debug_info .gnu.linkonce.wi.*) }\n\
   .debug_abbrev   0 : { *(.debug_abbrev) }\n\
-  .debug_line     0 : { *(.debug_line) }\n\
+  .debug_line     0 : { *(.debug_line .debug_line.* .debug_line_end ) }\n\
   .debug_frame    0 : { *(.debug_frame) }\n\
   .debug_str      0 : { *(.debug_str) }\n\
   .debug_loc      0 : { *(.debug_loc) }\n\
@@ -3090,14 +3088,14 @@ SECTIONS\n\
   .debug_macro    0 : { *(.debug_macro) }\n\
   .gnu.attributes 0 : { KEEP (*(.gnu.attributes)) }\n\
   .note.gnu.arm.ident 0 : { KEEP (*(.note.gnu.arm.ident)) }\n\
-  /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) *(.gnu_object_only) }\n\
+  /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) }\n\
 }\n\n"
   ; else if (link_info.pie && link_info.combreloc
              && link_info.relro
              && (link_info.flags & DF_BIND_NOW)) return
 "/* Script for -pie -z combreloc -z now -z relro: position independent executable, combine & sort relocs */\n\
 OUTPUT_FORMAT(\"elf32-bigarm\", \"elf32-bigarm\",\n\
-        \"elf32-littlearm\")\n\
+	      \"elf32-littlearm\")\n\
 OUTPUT_ARCH(arm)\n\
 ENTRY(_start)\n\
 SEARCH_DIR(\"/system/arm-linux-androideabi/lib\"); SEARCH_DIR(\"/system/lib\"); SEARCH_DIR(\"/usr/local/lib\"); SEARCH_DIR(\"/lib\"); SEARCH_DIR(\"/usr/lib\");\n\
@@ -3169,7 +3167,7 @@ SECTIONS\n\
   .iplt           : { *(.iplt) }\n\
   .text           :\n\
   {\n\
-    *(.text.unlikely .text.*_unlikely)\n"
+    *(.text.unlikely .text.*_unlikely .text.unlikely.*)\n"
 "    *(.text.exit .text.exit.*)\n\
     *(.text.startup .text.startup.*)\n\
     *(.text.hot .text.hot.*)\n\
@@ -3206,8 +3204,8 @@ SECTIONS\n\
   .gcc_except_table   : ONLY_IF_RW { *(.gcc_except_table .gcc_except_table.*) }\n\
   .exception_ranges   : ONLY_IF_RW { *(.exception_ranges .exception_ranges*) }\n\
   /* Thread Local Storage sections  */\n\
-  .tdata    : { *(.tdata .tdata.* .gnu.linkonce.td.*) }\n\
-  .tbss     : { *(.tbss .tbss.* .gnu.linkonce.tb.*) *(.tcommon) }\n\
+  .tdata	  : { *(.tdata .tdata.* .gnu.linkonce.td.*) }\n\
+  .tbss		  : { *(.tbss .tbss.* .gnu.linkonce.tb.*) *(.tcommon) }\n\
   .preinit_array     :\n\
   {\n\
     PROVIDE_HIDDEN (__preinit_array_start = .);\n\
@@ -3315,7 +3313,7 @@ SECTIONS\n\
   /* DWARF 2 */\n\
   .debug_info     0 : { *(.debug_info .gnu.linkonce.wi.*) }\n\
   .debug_abbrev   0 : { *(.debug_abbrev) }\n\
-  .debug_line     0 : { *(.debug_line) }\n\
+  .debug_line     0 : { *(.debug_line .debug_line.* .debug_line_end ) }\n\
   .debug_frame    0 : { *(.debug_frame) }\n\
   .debug_str      0 : { *(.debug_str) }\n\
   .debug_loc      0 : { *(.debug_loc) }\n\
@@ -3332,12 +3330,12 @@ SECTIONS\n\
   .debug_macro    0 : { *(.debug_macro) }\n\
   .gnu.attributes 0 : { KEEP (*(.gnu.attributes)) }\n\
   .note.gnu.arm.ident 0 : { KEEP (*(.note.gnu.arm.ident)) }\n\
-  /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) *(.gnu_object_only) }\n\
+  /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) }\n\
 }\n\n"
   ; else if (link_info.pie && link_info.combreloc) return
 "/* Script for -pie -z combreloc: position independent executable, combine & sort relocs */\n\
 OUTPUT_FORMAT(\"elf32-bigarm\", \"elf32-bigarm\",\n\
-        \"elf32-littlearm\")\n\
+	      \"elf32-littlearm\")\n\
 OUTPUT_ARCH(arm)\n\
 ENTRY(_start)\n\
 SEARCH_DIR(\"/system/arm-linux-androideabi/lib\"); SEARCH_DIR(\"/system/lib\"); SEARCH_DIR(\"/usr/local/lib\"); SEARCH_DIR(\"/lib\"); SEARCH_DIR(\"/usr/lib\");\n\
@@ -3409,7 +3407,7 @@ SECTIONS\n\
   .iplt           : { *(.iplt) }\n\
   .text           :\n\
   {\n\
-    *(.text.unlikely .text.*_unlikely)\n"
+    *(.text.unlikely .text.*_unlikely .text.unlikely.*)\n"
 "    *(.text.exit .text.exit.*)\n\
     *(.text.startup .text.startup.*)\n\
     *(.text.hot .text.hot.*)\n\
@@ -3446,8 +3444,8 @@ SECTIONS\n\
   .gcc_except_table   : ONLY_IF_RW { *(.gcc_except_table .gcc_except_table.*) }\n\
   .exception_ranges   : ONLY_IF_RW { *(.exception_ranges .exception_ranges*) }\n\
   /* Thread Local Storage sections  */\n\
-  .tdata    : { *(.tdata .tdata.* .gnu.linkonce.td.*) }\n\
-  .tbss     : { *(.tbss .tbss.* .gnu.linkonce.tb.*) *(.tcommon) }\n\
+  .tdata	  : { *(.tdata .tdata.* .gnu.linkonce.td.*) }\n\
+  .tbss		  : { *(.tbss .tbss.* .gnu.linkonce.tb.*) *(.tcommon) }\n\
   .preinit_array     :\n\
   {\n\
     PROVIDE_HIDDEN (__preinit_array_start = .);\n\
@@ -3555,7 +3553,7 @@ SECTIONS\n\
   /* DWARF 2 */\n\
   .debug_info     0 : { *(.debug_info .gnu.linkonce.wi.*) }\n\
   .debug_abbrev   0 : { *(.debug_abbrev) }\n\
-  .debug_line     0 : { *(.debug_line) }\n\
+  .debug_line     0 : { *(.debug_line .debug_line.* .debug_line_end ) }\n\
   .debug_frame    0 : { *(.debug_frame) }\n\
   .debug_str      0 : { *(.debug_str) }\n\
   .debug_loc      0 : { *(.debug_loc) }\n\
@@ -3572,12 +3570,12 @@ SECTIONS\n\
   .debug_macro    0 : { *(.debug_macro) }\n\
   .gnu.attributes 0 : { KEEP (*(.gnu.attributes)) }\n\
   .note.gnu.arm.ident 0 : { KEEP (*(.note.gnu.arm.ident)) }\n\
-  /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) *(.gnu_object_only) }\n\
+  /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) }\n\
 }\n\n"
   ; else if (link_info.pie) return
 "/* Script for ld -pie: link position independent executable */\n\
 OUTPUT_FORMAT(\"elf32-bigarm\", \"elf32-bigarm\",\n\
-        \"elf32-littlearm\")\n\
+	      \"elf32-littlearm\")\n\
 OUTPUT_ARCH(arm)\n\
 ENTRY(_start)\n\
 SEARCH_DIR(\"/system/arm-linux-androideabi/lib\"); SEARCH_DIR(\"/system/lib\"); SEARCH_DIR(\"/usr/local/lib\"); SEARCH_DIR(\"/lib\"); SEARCH_DIR(\"/usr/lib\");\n\
@@ -3606,10 +3604,10 @@ SECTIONS\n\
   .rela.data.rel.ro   : { *(.rela.data.rel.ro .rela.data.rel.ro.* .rela.gnu.linkonce.d.rel.ro.*) }\n\
   .rel.data       : { *(.rel.data .rel.data.* .rel.gnu.linkonce.d.*) }\n\
   .rela.data      : { *(.rela.data .rela.data.* .rela.gnu.linkonce.d.*) }\n\
-  .rel.tdata    : { *(.rel.tdata .rel.tdata.* .rel.gnu.linkonce.td.*) }\n\
-  .rela.tdata   : { *(.rela.tdata .rela.tdata.* .rela.gnu.linkonce.td.*) }\n\
-  .rel.tbss   : { *(.rel.tbss .rel.tbss.* .rel.gnu.linkonce.tb.*) }\n\
-  .rela.tbss    : { *(.rela.tbss .rela.tbss.* .rela.gnu.linkonce.tb.*) }\n\
+  .rel.tdata	  : { *(.rel.tdata .rel.tdata.* .rel.gnu.linkonce.td.*) }\n\
+  .rela.tdata	  : { *(.rela.tdata .rela.tdata.* .rela.gnu.linkonce.td.*) }\n\
+  .rel.tbss	  : { *(.rel.tbss .rel.tbss.* .rel.gnu.linkonce.tb.*) }\n\
+  .rela.tbss	  : { *(.rela.tbss .rela.tbss.* .rela.gnu.linkonce.tb.*) }\n\
   .rel.ctors      : { *(.rel.ctors) }\n\
   .rela.ctors     : { *(.rela.ctors) }\n\
   .rel.dtors      : { *(.rel.dtors) }\n\
@@ -3646,7 +3644,7 @@ SECTIONS\n\
   .iplt           : { *(.iplt) }\n\
   .text           :\n\
   {\n\
-    *(.text.unlikely .text.*_unlikely)\n\
+    *(.text.unlikely .text.*_unlikely .text.unlikely.*)\n\
     *(.text.exit .text.exit.*)\n\
     *(.text.startup .text.startup.*)\n\
     *(.text.hot .text.hot.*)\n"
@@ -3683,8 +3681,8 @@ SECTIONS\n\
   .gcc_except_table   : ONLY_IF_RW { *(.gcc_except_table .gcc_except_table.*) }\n\
   .exception_ranges   : ONLY_IF_RW { *(.exception_ranges .exception_ranges*) }\n\
   /* Thread Local Storage sections  */\n\
-  .tdata    : { *(.tdata .tdata.* .gnu.linkonce.td.*) }\n\
-  .tbss     : { *(.tbss .tbss.* .gnu.linkonce.tb.*) *(.tcommon) }\n\
+  .tdata	  : { *(.tdata .tdata.* .gnu.linkonce.td.*) }\n\
+  .tbss		  : { *(.tbss .tbss.* .gnu.linkonce.tb.*) *(.tcommon) }\n\
   .preinit_array     :\n\
   {\n\
     PROVIDE_HIDDEN (__preinit_array_start = .);\n\
@@ -3792,7 +3790,7 @@ SECTIONS\n\
   /* DWARF 2 */\n\
   .debug_info     0 : { *(.debug_info .gnu.linkonce.wi.*) }\n\
   .debug_abbrev   0 : { *(.debug_abbrev) }\n\
-  .debug_line     0 : { *(.debug_line) }\n\
+  .debug_line     0 : { *(.debug_line .debug_line.* .debug_line_end ) }\n\
   .debug_frame    0 : { *(.debug_frame) }\n\
   .debug_str      0 : { *(.debug_str) }\n\
   .debug_loc      0 : { *(.debug_loc) }\n\
@@ -3809,14 +3807,14 @@ SECTIONS\n\
   .debug_macro    0 : { *(.debug_macro) }\n\
   .gnu.attributes 0 : { KEEP (*(.gnu.attributes)) }\n\
   .note.gnu.arm.ident 0 : { KEEP (*(.note.gnu.arm.ident)) }\n\
-  /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) *(.gnu_object_only) }\n\
+  /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) }\n\
 }\n\n"
   ; else if (link_info.shared && link_info.combreloc
              && link_info.relro
              && (link_info.flags & DF_BIND_NOW)) return
 "/* Script for --shared -z combreloc -z now -z relro: shared library, combine & sort relocs */\n\
 OUTPUT_FORMAT(\"elf32-bigarm\", \"elf32-bigarm\",\n\
-        \"elf32-littlearm\")\n\
+	      \"elf32-littlearm\")\n\
 OUTPUT_ARCH(arm)\n\
 ENTRY(_start)\n\
 SEARCH_DIR(\"/system/arm-linux-androideabi/lib\"); SEARCH_DIR(\"/system/lib\"); SEARCH_DIR(\"/usr/local/lib\"); SEARCH_DIR(\"/lib\"); SEARCH_DIR(\"/usr/lib\");\n\
@@ -3879,7 +3877,7 @@ SECTIONS\n\
   .iplt           : { *(.iplt) }\n\
   .text           :\n\
   {\n\
-    *(.text.unlikely .text.*_unlikely)\n\
+    *(.text.unlikely .text.*_unlikely .text.unlikely.*)\n\
     *(.text.exit .text.exit.*)\n\
     *(.text.startup .text.startup.*)\n\
     *(.text.hot .text.hot.*)\n\
@@ -3916,8 +3914,8 @@ SECTIONS\n\
   .gcc_except_table   : ONLY_IF_RW { *(.gcc_except_table .gcc_except_table.*) }\n"
 "  .exception_ranges   : ONLY_IF_RW { *(.exception_ranges .exception_ranges*) }\n\
   /* Thread Local Storage sections  */\n\
-  .tdata    : { *(.tdata .tdata.* .gnu.linkonce.td.*) }\n\
-  .tbss     : { *(.tbss .tbss.* .gnu.linkonce.tb.*) *(.tcommon) }\n\
+  .tdata	  : { *(.tdata .tdata.* .gnu.linkonce.td.*) }\n\
+  .tbss		  : { *(.tbss .tbss.* .gnu.linkonce.tb.*) *(.tcommon) }\n\
   .preinit_array     :\n\
   {\n\
     KEEP (*(.preinit_array))\n\
@@ -4019,7 +4017,7 @@ SECTIONS\n\
   /* DWARF 2 */\n\
   .debug_info     0 : { *(.debug_info .gnu.linkonce.wi.*) }\n\
   .debug_abbrev   0 : { *(.debug_abbrev) }\n\
-  .debug_line     0 : { *(.debug_line) }\n\
+  .debug_line     0 : { *(.debug_line .debug_line.* .debug_line_end ) }\n\
   .debug_frame    0 : { *(.debug_frame) }\n\
   .debug_str      0 : { *(.debug_str) }\n\
   .debug_loc      0 : { *(.debug_loc) }\n\
@@ -4036,12 +4034,12 @@ SECTIONS\n\
   .debug_macro    0 : { *(.debug_macro) }\n\
   .gnu.attributes 0 : { KEEP (*(.gnu.attributes)) }\n\
   .note.gnu.arm.ident 0 : { KEEP (*(.note.gnu.arm.ident)) }\n\
-  /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) *(.gnu_object_only) }\n\
+  /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) }\n\
 }\n\n"
   ; else if (link_info.shared && link_info.combreloc) return
 "/* Script for --shared -z combreloc: shared library, combine & sort relocs */\n\
 OUTPUT_FORMAT(\"elf32-bigarm\", \"elf32-bigarm\",\n\
-        \"elf32-littlearm\")\n\
+	      \"elf32-littlearm\")\n\
 OUTPUT_ARCH(arm)\n\
 ENTRY(_start)\n\
 SEARCH_DIR(\"/system/arm-linux-androideabi/lib\"); SEARCH_DIR(\"/system/lib\"); SEARCH_DIR(\"/usr/local/lib\"); SEARCH_DIR(\"/lib\"); SEARCH_DIR(\"/usr/lib\");\n\
@@ -4104,7 +4102,7 @@ SECTIONS\n\
   .iplt           : { *(.iplt) }\n\
   .text           :\n\
   {\n\
-    *(.text.unlikely .text.*_unlikely)\n\
+    *(.text.unlikely .text.*_unlikely .text.unlikely.*)\n\
     *(.text.exit .text.exit.*)\n\
     *(.text.startup .text.startup.*)\n\
     *(.text.hot .text.hot.*)\n\
@@ -4141,8 +4139,8 @@ SECTIONS\n\
   .gcc_except_table   : ONLY_IF_RW { *(.gcc_except_table .gcc_except_table.*) }\n"
 "  .exception_ranges   : ONLY_IF_RW { *(.exception_ranges .exception_ranges*) }\n\
   /* Thread Local Storage sections  */\n\
-  .tdata    : { *(.tdata .tdata.* .gnu.linkonce.td.*) }\n\
-  .tbss     : { *(.tbss .tbss.* .gnu.linkonce.tb.*) *(.tcommon) }\n\
+  .tdata	  : { *(.tdata .tdata.* .gnu.linkonce.td.*) }\n\
+  .tbss		  : { *(.tbss .tbss.* .gnu.linkonce.tb.*) *(.tcommon) }\n\
   .preinit_array     :\n\
   {\n\
     KEEP (*(.preinit_array))\n\
@@ -4244,7 +4242,7 @@ SECTIONS\n\
   /* DWARF 2 */\n\
   .debug_info     0 : { *(.debug_info .gnu.linkonce.wi.*) }\n\
   .debug_abbrev   0 : { *(.debug_abbrev) }\n\
-  .debug_line     0 : { *(.debug_line) }\n\
+  .debug_line     0 : { *(.debug_line .debug_line.* .debug_line_end ) }\n\
   .debug_frame    0 : { *(.debug_frame) }\n\
   .debug_str      0 : { *(.debug_str) }\n\
   .debug_loc      0 : { *(.debug_loc) }\n\
@@ -4261,12 +4259,12 @@ SECTIONS\n\
   .debug_macro    0 : { *(.debug_macro) }\n\
   .gnu.attributes 0 : { KEEP (*(.gnu.attributes)) }\n\
   .note.gnu.arm.ident 0 : { KEEP (*(.note.gnu.arm.ident)) }\n\
-  /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) *(.gnu_object_only) }\n\
+  /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) }\n\
 }\n\n"
   ; else if (link_info.shared) return
 "/* Script for ld --shared: link shared library */\n\
 OUTPUT_FORMAT(\"elf32-bigarm\", \"elf32-bigarm\",\n\
-        \"elf32-littlearm\")\n\
+	      \"elf32-littlearm\")\n\
 OUTPUT_ARCH(arm)\n\
 ENTRY(_start)\n\
 SEARCH_DIR(\"/system/arm-linux-androideabi/lib\"); SEARCH_DIR(\"/system/lib\"); SEARCH_DIR(\"/usr/local/lib\"); SEARCH_DIR(\"/lib\"); SEARCH_DIR(\"/usr/lib\");\n\
@@ -4294,10 +4292,10 @@ SECTIONS\n\
   .rela.data.rel.ro   : { *(.rela.data.rel.ro .rela.data.rel.ro.* .rela.gnu.linkonce.d.rel.ro.*) }\n\
   .rel.data       : { *(.rel.data .rel.data.* .rel.gnu.linkonce.d.*) }\n\
   .rela.data      : { *(.rela.data .rela.data.* .rela.gnu.linkonce.d.*) }\n\
-  .rel.tdata    : { *(.rel.tdata .rel.tdata.* .rel.gnu.linkonce.td.*) }\n\
-  .rela.tdata   : { *(.rela.tdata .rela.tdata.* .rela.gnu.linkonce.td.*) }\n\
-  .rel.tbss   : { *(.rel.tbss .rel.tbss.* .rel.gnu.linkonce.tb.*) }\n\
-  .rela.tbss    : { *(.rela.tbss .rela.tbss.* .rela.gnu.linkonce.tb.*) }\n\
+  .rel.tdata	  : { *(.rel.tdata .rel.tdata.* .rel.gnu.linkonce.td.*) }\n\
+  .rela.tdata	  : { *(.rela.tdata .rela.tdata.* .rela.gnu.linkonce.td.*) }\n\
+  .rel.tbss	  : { *(.rel.tbss .rel.tbss.* .rel.gnu.linkonce.tb.*) }\n\
+  .rela.tbss	  : { *(.rela.tbss .rela.tbss.* .rela.gnu.linkonce.tb.*) }\n\
   .rel.ctors      : { *(.rel.ctors) }\n\
   .rela.ctors     : { *(.rela.ctors) }\n\
   .rel.dtors      : { *(.rel.dtors) }\n\
@@ -4330,7 +4328,7 @@ SECTIONS\n\
   .iplt           : { *(.iplt) }\n\
   .text           :\n\
   {\n\
-    *(.text.unlikely .text.*_unlikely)\n\
+    *(.text.unlikely .text.*_unlikely .text.unlikely.*)\n\
     *(.text.exit .text.exit.*)\n\
     *(.text.startup .text.startup.*)\n\
     *(.text.hot .text.hot.*)\n\
@@ -4367,8 +4365,8 @@ SECTIONS\n\
 "  .gcc_except_table   : ONLY_IF_RW { *(.gcc_except_table .gcc_except_table.*) }\n\
   .exception_ranges   : ONLY_IF_RW { *(.exception_ranges .exception_ranges*) }\n\
   /* Thread Local Storage sections  */\n\
-  .tdata    : { *(.tdata .tdata.* .gnu.linkonce.td.*) }\n\
-  .tbss     : { *(.tbss .tbss.* .gnu.linkonce.tb.*) *(.tcommon) }\n\
+  .tdata	  : { *(.tdata .tdata.* .gnu.linkonce.td.*) }\n\
+  .tbss		  : { *(.tbss .tbss.* .gnu.linkonce.tb.*) *(.tcommon) }\n\
   .preinit_array     :\n\
   {\n\
     KEEP (*(.preinit_array))\n\
@@ -4470,7 +4468,7 @@ SECTIONS\n\
   /* DWARF 2 */\n\
   .debug_info     0 : { *(.debug_info .gnu.linkonce.wi.*) }\n\
   .debug_abbrev   0 : { *(.debug_abbrev) }\n\
-  .debug_line     0 : { *(.debug_line) }\n\
+  .debug_line     0 : { *(.debug_line .debug_line.* .debug_line_end ) }\n\
   .debug_frame    0 : { *(.debug_frame) }\n\
   .debug_str      0 : { *(.debug_str) }\n\
   .debug_loc      0 : { *(.debug_loc) }\n\
@@ -4487,13 +4485,13 @@ SECTIONS\n\
   .debug_macro    0 : { *(.debug_macro) }\n\
   .gnu.attributes 0 : { KEEP (*(.gnu.attributes)) }\n\
   .note.gnu.arm.ident 0 : { KEEP (*(.note.gnu.arm.ident)) }\n\
-  /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) *(.gnu_object_only) }\n\
+  /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) }\n\
 }\n\n"
   ; else if (link_info.combreloc && link_info.relro
              && (link_info.flags & DF_BIND_NOW)) return
 "/* Script for -z combreloc -z now -z relro: combine and sort reloc sections */\n\
 OUTPUT_FORMAT(\"elf32-bigarm\", \"elf32-bigarm\",\n\
-        \"elf32-littlearm\")\n\
+	      \"elf32-littlearm\")\n\
 OUTPUT_ARCH(arm)\n\
 ENTRY(_start)\n\
 SEARCH_DIR(\"/system/arm-linux-androideabi/lib\"); SEARCH_DIR(\"/system/lib\"); SEARCH_DIR(\"/usr/local/lib\"); SEARCH_DIR(\"/lib\"); SEARCH_DIR(\"/usr/lib\");\n\
@@ -4565,7 +4563,7 @@ SECTIONS\n\
   .iplt           : { *(.iplt) }\n\
   .text           :\n\
   {\n\
-    *(.text.unlikely .text.*_unlikely)\n"
+    *(.text.unlikely .text.*_unlikely .text.unlikely.*)\n"
 "    *(.text.exit .text.exit.*)\n\
     *(.text.startup .text.startup.*)\n\
     *(.text.hot .text.hot.*)\n\
@@ -4602,8 +4600,8 @@ SECTIONS\n\
   .gcc_except_table   : ONLY_IF_RW { *(.gcc_except_table .gcc_except_table.*) }\n\
   .exception_ranges   : ONLY_IF_RW { *(.exception_ranges .exception_ranges*) }\n\
   /* Thread Local Storage sections  */\n\
-  .tdata    : { *(.tdata .tdata.* .gnu.linkonce.td.*) }\n\
-  .tbss     : { *(.tbss .tbss.* .gnu.linkonce.tb.*) *(.tcommon) }\n\
+  .tdata	  : { *(.tdata .tdata.* .gnu.linkonce.td.*) }\n\
+  .tbss		  : { *(.tbss .tbss.* .gnu.linkonce.tb.*) *(.tcommon) }\n\
   .preinit_array     :\n\
   {\n\
     PROVIDE_HIDDEN (__preinit_array_start = .);\n\
@@ -4711,7 +4709,7 @@ SECTIONS\n\
   /* DWARF 2 */\n\
   .debug_info     0 : { *(.debug_info .gnu.linkonce.wi.*) }\n\
   .debug_abbrev   0 : { *(.debug_abbrev) }\n\
-  .debug_line     0 : { *(.debug_line) }\n\
+  .debug_line     0 : { *(.debug_line .debug_line.* .debug_line_end ) }\n\
   .debug_frame    0 : { *(.debug_frame) }\n\
   .debug_str      0 : { *(.debug_str) }\n\
   .debug_loc      0 : { *(.debug_loc) }\n\
@@ -4728,12 +4726,12 @@ SECTIONS\n\
   .debug_macro    0 : { *(.debug_macro) }\n\
   .gnu.attributes 0 : { KEEP (*(.gnu.attributes)) }\n\
   .note.gnu.arm.ident 0 : { KEEP (*(.note.gnu.arm.ident)) }\n\
-  /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) *(.gnu_object_only) }\n\
+  /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) }\n\
 }\n\n"
   ; else if (link_info.combreloc) return
 "/* Script for -z combreloc: combine and sort reloc sections */\n\
 OUTPUT_FORMAT(\"elf32-bigarm\", \"elf32-bigarm\",\n\
-        \"elf32-littlearm\")\n\
+	      \"elf32-littlearm\")\n\
 OUTPUT_ARCH(arm)\n\
 ENTRY(_start)\n\
 SEARCH_DIR(\"/system/arm-linux-androideabi/lib\"); SEARCH_DIR(\"/system/lib\"); SEARCH_DIR(\"/usr/local/lib\"); SEARCH_DIR(\"/lib\"); SEARCH_DIR(\"/usr/lib\");\n\
@@ -4805,7 +4803,7 @@ SECTIONS\n\
   .iplt           : { *(.iplt) }\n\
   .text           :\n\
   {\n\
-    *(.text.unlikely .text.*_unlikely)\n"
+    *(.text.unlikely .text.*_unlikely .text.unlikely.*)\n"
 "    *(.text.exit .text.exit.*)\n\
     *(.text.startup .text.startup.*)\n\
     *(.text.hot .text.hot.*)\n\
@@ -4842,8 +4840,8 @@ SECTIONS\n\
   .gcc_except_table   : ONLY_IF_RW { *(.gcc_except_table .gcc_except_table.*) }\n\
   .exception_ranges   : ONLY_IF_RW { *(.exception_ranges .exception_ranges*) }\n\
   /* Thread Local Storage sections  */\n\
-  .tdata    : { *(.tdata .tdata.* .gnu.linkonce.td.*) }\n\
-  .tbss     : { *(.tbss .tbss.* .gnu.linkonce.tb.*) *(.tcommon) }\n\
+  .tdata	  : { *(.tdata .tdata.* .gnu.linkonce.td.*) }\n\
+  .tbss		  : { *(.tbss .tbss.* .gnu.linkonce.tb.*) *(.tcommon) }\n\
   .preinit_array     :\n\
   {\n\
     PROVIDE_HIDDEN (__preinit_array_start = .);\n\
@@ -4951,7 +4949,7 @@ SECTIONS\n\
   /* DWARF 2 */\n\
   .debug_info     0 : { *(.debug_info .gnu.linkonce.wi.*) }\n\
   .debug_abbrev   0 : { *(.debug_abbrev) }\n\
-  .debug_line     0 : { *(.debug_line) }\n\
+  .debug_line     0 : { *(.debug_line .debug_line.* .debug_line_end ) }\n\
   .debug_frame    0 : { *(.debug_frame) }\n\
   .debug_str      0 : { *(.debug_str) }\n\
   .debug_loc      0 : { *(.debug_loc) }\n\
@@ -4968,12 +4966,12 @@ SECTIONS\n\
   .debug_macro    0 : { *(.debug_macro) }\n\
   .gnu.attributes 0 : { KEEP (*(.gnu.attributes)) }\n\
   .note.gnu.arm.ident 0 : { KEEP (*(.note.gnu.arm.ident)) }\n\
-  /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) *(.gnu_object_only) }\n\
+  /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) }\n\
 }\n\n"
   ; else return
 "/* Default linker script, for normal executables */\n\
 OUTPUT_FORMAT(\"elf32-bigarm\", \"elf32-bigarm\",\n\
-        \"elf32-littlearm\")\n\
+	      \"elf32-littlearm\")\n\
 OUTPUT_ARCH(arm)\n\
 ENTRY(_start)\n\
 SEARCH_DIR(\"/system/arm-linux-androideabi/lib\"); SEARCH_DIR(\"/system/lib\"); SEARCH_DIR(\"/usr/local/lib\"); SEARCH_DIR(\"/lib\"); SEARCH_DIR(\"/usr/lib\");\n\
@@ -5002,10 +5000,10 @@ SECTIONS\n\
   .rela.data.rel.ro   : { *(.rela.data.rel.ro .rela.data.rel.ro.* .rela.gnu.linkonce.d.rel.ro.*) }\n\
   .rel.data       : { *(.rel.data .rel.data.* .rel.gnu.linkonce.d.*) }\n\
   .rela.data      : { *(.rela.data .rela.data.* .rela.gnu.linkonce.d.*) }\n\
-  .rel.tdata    : { *(.rel.tdata .rel.tdata.* .rel.gnu.linkonce.td.*) }\n\
-  .rela.tdata   : { *(.rela.tdata .rela.tdata.* .rela.gnu.linkonce.td.*) }\n\
-  .rel.tbss   : { *(.rel.tbss .rel.tbss.* .rel.gnu.linkonce.tb.*) }\n\
-  .rela.tbss    : { *(.rela.tbss .rela.tbss.* .rela.gnu.linkonce.tb.*) }\n\
+  .rel.tdata	  : { *(.rel.tdata .rel.tdata.* .rel.gnu.linkonce.td.*) }\n\
+  .rela.tdata	  : { *(.rela.tdata .rela.tdata.* .rela.gnu.linkonce.td.*) }\n\
+  .rel.tbss	  : { *(.rel.tbss .rel.tbss.* .rel.gnu.linkonce.tb.*) }\n\
+  .rela.tbss	  : { *(.rela.tbss .rela.tbss.* .rela.gnu.linkonce.tb.*) }\n\
   .rel.ctors      : { *(.rel.ctors) }\n\
   .rela.ctors     : { *(.rela.ctors) }\n\
   .rel.dtors      : { *(.rel.dtors) }\n\
@@ -5042,7 +5040,7 @@ SECTIONS\n\
   .iplt           : { *(.iplt) }\n\
   .text           :\n\
   {\n\
-    *(.text.unlikely .text.*_unlikely)\n\
+    *(.text.unlikely .text.*_unlikely .text.unlikely.*)\n\
     *(.text.exit .text.exit.*)\n\
     *(.text.startup .text.startup.*)\n\
     *(.text.hot .text.hot.*)\n"
@@ -5079,8 +5077,8 @@ SECTIONS\n\
   .gcc_except_table   : ONLY_IF_RW { *(.gcc_except_table .gcc_except_table.*) }\n\
   .exception_ranges   : ONLY_IF_RW { *(.exception_ranges .exception_ranges*) }\n\
   /* Thread Local Storage sections  */\n\
-  .tdata    : { *(.tdata .tdata.* .gnu.linkonce.td.*) }\n\
-  .tbss     : { *(.tbss .tbss.* .gnu.linkonce.tb.*) *(.tcommon) }\n\
+  .tdata	  : { *(.tdata .tdata.* .gnu.linkonce.td.*) }\n\
+  .tbss		  : { *(.tbss .tbss.* .gnu.linkonce.tb.*) *(.tcommon) }\n\
   .preinit_array     :\n\
   {\n\
     PROVIDE_HIDDEN (__preinit_array_start = .);\n\
@@ -5188,7 +5186,7 @@ SECTIONS\n\
   /* DWARF 2 */\n\
   .debug_info     0 : { *(.debug_info .gnu.linkonce.wi.*) }\n\
   .debug_abbrev   0 : { *(.debug_abbrev) }\n\
-  .debug_line     0 : { *(.debug_line) }\n\
+  .debug_line     0 : { *(.debug_line .debug_line.* .debug_line_end ) }\n\
   .debug_frame    0 : { *(.debug_frame) }\n\
   .debug_str      0 : { *(.debug_str) }\n\
   .debug_loc      0 : { *(.debug_loc) }\n\
@@ -5205,38 +5203,38 @@ SECTIONS\n\
   .debug_macro    0 : { *(.debug_macro) }\n\
   .gnu.attributes 0 : { KEEP (*(.gnu.attributes)) }\n\
   .note.gnu.arm.ident 0 : { KEEP (*(.note.gnu.arm.ident)) }\n\
-  /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) *(.gnu_object_only) }\n\
+  /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) }\n\
 }\n\n"
 ; }
  
-#define OPTION_THUMB_ENTRY    301
-#define OPTION_BE8      302
-#define OPTION_TARGET1_REL    303
-#define OPTION_TARGET1_ABS    304
-#define OPTION_TARGET2      305
-#define OPTION_FIX_V4BX     306
-#define OPTION_USE_BLX      307
-#define OPTION_VFP11_DENORM_FIX   308
-#define OPTION_NO_ENUM_SIZE_WARNING 309
-#define OPTION_PIC_VENEER   310
-#define OPTION_FIX_V4BX_INTERWORKING  311
+#define OPTION_THUMB_ENTRY		301
+#define OPTION_BE8			302
+#define OPTION_TARGET1_REL		303
+#define OPTION_TARGET1_ABS		304
+#define OPTION_TARGET2			305
+#define OPTION_FIX_V4BX			306
+#define OPTION_USE_BLX			307
+#define OPTION_VFP11_DENORM_FIX		308
+#define OPTION_NO_ENUM_SIZE_WARNING	309
+#define OPTION_PIC_VENEER		310
+#define OPTION_FIX_V4BX_INTERWORKING	311
 #define OPTION_STUBGROUP_SIZE           312
-#define OPTION_NO_WCHAR_SIZE_WARNING  313
-#define OPTION_FIX_CORTEX_A8    314
-#define OPTION_NO_FIX_CORTEX_A8   315
+#define OPTION_NO_WCHAR_SIZE_WARNING	313
+#define OPTION_FIX_CORTEX_A8		314
+#define OPTION_NO_FIX_CORTEX_A8		315
 #define OPTION_NO_MERGE_EXIDX_ENTRIES   316
-#define OPTION_FIX_ARM1176    317
-#define OPTION_NO_FIX_ARM1176   318
+#define OPTION_FIX_ARM1176		317
+#define OPTION_NO_FIX_ARM1176		318
 
 
-#define OPTION_DISABLE_NEW_DTAGS  (400)
-#define OPTION_ENABLE_NEW_DTAGS   (OPTION_DISABLE_NEW_DTAGS + 1)
-#define OPTION_GROUP      (OPTION_ENABLE_NEW_DTAGS + 1)
-#define OPTION_EH_FRAME_HDR   (OPTION_GROUP + 1)
-#define OPTION_EXCLUDE_LIBS   (OPTION_EH_FRAME_HDR + 1)
-#define OPTION_HASH_STYLE   (OPTION_EXCLUDE_LIBS + 1)
-#define OPTION_BUILD_ID     (OPTION_HASH_STYLE + 1)
-#define OPTION_AUDIT      (OPTION_BUILD_ID + 1)
+#define OPTION_DISABLE_NEW_DTAGS	(400)
+#define OPTION_ENABLE_NEW_DTAGS		(OPTION_DISABLE_NEW_DTAGS + 1)
+#define OPTION_GROUP			(OPTION_ENABLE_NEW_DTAGS + 1)
+#define OPTION_EH_FRAME_HDR		(OPTION_GROUP + 1)
+#define OPTION_EXCLUDE_LIBS		(OPTION_EH_FRAME_HDR + 1)
+#define OPTION_HASH_STYLE		(OPTION_EXCLUDE_LIBS + 1)
+#define OPTION_BUILD_ID			(OPTION_HASH_STYLE + 1)
+#define OPTION_AUDIT			(OPTION_BUILD_ID + 1)
 
 static void
 gldarmelfb_linux_eabi_add_options
@@ -5285,7 +5283,7 @@ gldarmelfb_linux_eabi_add_options
   memcpy (*longopts + nl, &xtra_long, sizeof (xtra_long));
 }
 
-#define DEFAULT_BUILD_ID_STYLE  "sha1"
+#define DEFAULT_BUILD_ID_STYLE	"sha1"
 
 static bfd_boolean
 gldarmelfb_linux_eabi_handle_option (int optc)
@@ -5297,23 +5295,23 @@ gldarmelfb_linux_eabi_handle_option (int optc)
 
     case OPTION_BUILD_ID:
       if (emit_note_gnu_build_id != NULL)
-  {
-    free ((char *) emit_note_gnu_build_id);
-    emit_note_gnu_build_id = NULL;
-  }
+	{
+	  free ((char *) emit_note_gnu_build_id);
+	  emit_note_gnu_build_id = NULL;
+	}
       if (optarg == NULL)
-  optarg = DEFAULT_BUILD_ID_STYLE;
+	optarg = DEFAULT_BUILD_ID_STYLE;
       if (strcmp (optarg, "none"))
-  emit_note_gnu_build_id = xstrdup (optarg);
+	emit_note_gnu_build_id = xstrdup (optarg);
       break;
 
     case OPTION_AUDIT:
-  gldarmelfb_linux_eabi_append_to_separated_string (&audit, optarg);
-  break;
+	gldarmelfb_linux_eabi_append_to_separated_string (&audit, optarg);
+	break;
 
     case 'P':
-  gldarmelfb_linux_eabi_append_to_separated_string (&depaudit, optarg);
-  break;
+	gldarmelfb_linux_eabi_append_to_separated_string (&depaudit, optarg);
+	break;
 
     case OPTION_DISABLE_NEW_DTAGS:
       link_info.new_dtags = FALSE;
@@ -5342,113 +5340,111 @@ gldarmelfb_linux_eabi_handle_option (int optc)
       link_info.emit_hash = FALSE;
       link_info.emit_gnu_hash = FALSE;
       if (strcmp (optarg, "sysv") == 0)
-  link_info.emit_hash = TRUE;
+	link_info.emit_hash = TRUE;
       else if (strcmp (optarg, "gnu") == 0)
-  link_info.emit_gnu_hash = TRUE;
+	link_info.emit_gnu_hash = TRUE;
       else if (strcmp (optarg, "both") == 0)
-  {
-    link_info.emit_hash = TRUE;
-    link_info.emit_gnu_hash = TRUE;
-  }
+	{
+	  link_info.emit_hash = TRUE;
+	  link_info.emit_gnu_hash = TRUE;
+	}
       else
-  einfo (_("%P%F: invalid hash style `%s'\n"), optarg);
+	einfo (_("%P%F: invalid hash style `%s'\n"), optarg);
       break;
 
     case 'z':
       if (strcmp (optarg, "defs") == 0)
-  link_info.unresolved_syms_in_objects = RM_GENERATE_ERROR;
+	link_info.unresolved_syms_in_objects = RM_GENERATE_ERROR;
       else if (strcmp (optarg, "muldefs") == 0)
-  link_info.allow_multiple_definition = TRUE;
+	link_info.allow_multiple_definition = TRUE;
       else if (CONST_STRNEQ (optarg, "max-page-size="))
-  {
-    char *end;
+	{
+	  char *end;
 
-    config.maxpagesize = strtoul (optarg + 14, &end, 0);
-    if (*end || (config.maxpagesize & (config.maxpagesize - 1)) != 0)
-      einfo (_("%P%F: invalid maxium page size `%s'\n"),
-       optarg + 14);
-  }
+	  config.maxpagesize = strtoul (optarg + 14, &end, 0);
+	  if (*end || (config.maxpagesize & (config.maxpagesize - 1)) != 0)
+	    einfo (_("%P%F: invalid maxium page size `%s'\n"),
+		   optarg + 14);
+	}
       else if (CONST_STRNEQ (optarg, "common-page-size="))
-  {
-    char *end;
-    config.commonpagesize = strtoul (optarg + 17, &end, 0);
-    if (*end
-        || (config.commonpagesize & (config.commonpagesize - 1)) != 0)
-      einfo (_("%P%F: invalid common page size `%s'\n"),
-       optarg + 17);
-  }
+	{
+	  char *end;
+	  config.commonpagesize = strtoul (optarg + 17, &end, 0);
+	  if (*end
+	      || (config.commonpagesize & (config.commonpagesize - 1)) != 0)
+	    einfo (_("%P%F: invalid common page size `%s'\n"),
+		   optarg + 17);
+	}
       else if (CONST_STRNEQ (optarg, "stack-size="))
-  {
-    char *end;
-    link_info.stacksize = strtoul (optarg + 11, &end, 0);
-    if (*end || link_info.stacksize < 0)
-      einfo (_("%P%F: invalid stack size `%s'\n"), optarg + 11);
-    if (!link_info.stacksize)
-      /* Use -1 for explicit no-stack, because zero means
-         'default'.   */
-      link_info.stacksize = -1;
-  }
+	{
+	  char *end;
+	  link_info.stacksize = strtoul (optarg + 11, &end, 0);
+	  if (*end || link_info.stacksize < 0)
+	    einfo (_("%P%F: invalid stack size `%s'\n"), optarg + 11);
+	  if (!link_info.stacksize)
+	    /* Use -1 for explicit no-stack, because zero means
+	       'default'.   */
+	    link_info.stacksize = -1;
+	}
       else if (strcmp (optarg, "execstack") == 0)
-  {
-    link_info.execstack = TRUE;
-    link_info.noexecstack = FALSE;
-  }
+	{
+	  link_info.execstack = TRUE;
+	  link_info.noexecstack = FALSE;
+	}
       else if (strcmp (optarg, "noexecstack") == 0)
-  {
-    link_info.noexecstack = TRUE;
-    link_info.execstack = FALSE;
-  }
+	{
+	  link_info.noexecstack = TRUE;
+	  link_info.execstack = FALSE;
+	}
       else if (strcmp (optarg, "global") == 0)
-  link_info.flags_1 |= (bfd_vma) DF_1_GLOBAL;
+	link_info.flags_1 |= (bfd_vma) DF_1_GLOBAL;
       else if (strcmp (optarg, "initfirst") == 0)
-  link_info.flags_1 |= (bfd_vma) DF_1_INITFIRST;
+	link_info.flags_1 |= (bfd_vma) DF_1_INITFIRST;
       else if (strcmp (optarg, "interpose") == 0)
-  link_info.flags_1 |= (bfd_vma) DF_1_INTERPOSE;
+	link_info.flags_1 |= (bfd_vma) DF_1_INTERPOSE;
       else if (strcmp (optarg, "loadfltr") == 0)
-  link_info.flags_1 |= (bfd_vma) DF_1_LOADFLTR;
+	link_info.flags_1 |= (bfd_vma) DF_1_LOADFLTR;
       else if (strcmp (optarg, "nodefaultlib") == 0)
-  link_info.flags_1 |= (bfd_vma) DF_1_NODEFLIB;
+	link_info.flags_1 |= (bfd_vma) DF_1_NODEFLIB;
       else if (strcmp (optarg, "nodelete") == 0)
-  link_info.flags_1 |= (bfd_vma) DF_1_NODELETE;
+	link_info.flags_1 |= (bfd_vma) DF_1_NODELETE;
       else if (strcmp (optarg, "nodlopen") == 0)
-  link_info.flags_1 |= (bfd_vma) DF_1_NOOPEN;
+	link_info.flags_1 |= (bfd_vma) DF_1_NOOPEN;
       else if (strcmp (optarg, "nodump") == 0)
-  link_info.flags_1 |= (bfd_vma) DF_1_NODUMP;
+	link_info.flags_1 |= (bfd_vma) DF_1_NODUMP;
       else if (strcmp (optarg, "now") == 0)
-  {
-    link_info.flags |= (bfd_vma) DF_BIND_NOW;
-    link_info.flags_1 |= (bfd_vma) DF_1_NOW;
-  }
+	{
+	  link_info.flags |= (bfd_vma) DF_BIND_NOW;
+	  link_info.flags_1 |= (bfd_vma) DF_1_NOW;
+	}
       else if (strcmp (optarg, "lazy") == 0)
-  {
-    link_info.flags &= ~(bfd_vma) DF_BIND_NOW;
-    link_info.flags_1 &= ~(bfd_vma) DF_1_NOW;
-  }
+	{
+	  link_info.flags &= ~(bfd_vma) DF_BIND_NOW;
+	  link_info.flags_1 &= ~(bfd_vma) DF_1_NOW;
+	}
       else if (strcmp (optarg, "origin") == 0)
-  {
-    link_info.flags |= (bfd_vma) DF_ORIGIN;
-    link_info.flags_1 |= (bfd_vma) DF_1_ORIGIN;
-  }
+	{
+	  link_info.flags |= (bfd_vma) DF_ORIGIN;
+	  link_info.flags_1 |= (bfd_vma) DF_1_ORIGIN;
+	}
       else if (strcmp (optarg, "combreloc") == 0)
-  link_info.combreloc = TRUE;
+	link_info.combreloc = TRUE;
       else if (strcmp (optarg, "nocombreloc") == 0)
-  link_info.combreloc = FALSE;
+	link_info.combreloc = FALSE;
       else if (strcmp (optarg, "nocopyreloc") == 0)
-  link_info.nocopyreloc = TRUE;
+	link_info.nocopyreloc = TRUE;
       else if (strcmp (optarg, "relro") == 0)
-  link_info.relro = TRUE;
+	link_info.relro = TRUE;
       else if (strcmp (optarg, "norelro") == 0)
-  link_info.relro = FALSE;
+	link_info.relro = FALSE;
       else if (strcmp (optarg, "text") == 0)
-  link_info.error_textrel = TRUE;
+	link_info.error_textrel = TRUE;
       else if (strcmp (optarg, "notext") == 0)
-  link_info.error_textrel = FALSE;
+	link_info.error_textrel = FALSE;
       else if (strcmp (optarg, "textoff") == 0)
-  link_info.error_textrel = FALSE;
-      else if (strcmp (optarg, "nosecondary") == 0)
-  link_info.emit_secondary = FALSE;
+	link_info.error_textrel = FALSE;
       else
-  einfo (_("%P: warning: -z %s ignored.\n"), optarg);
+	einfo (_("%P: warning: -z %s ignored.\n"), optarg);
       break;
  
     case 'p':
@@ -5512,11 +5508,11 @@ gldarmelfb_linux_eabi_handle_option (int optc)
 
     case OPTION_STUBGROUP_SIZE:
       {
-  const char *end;
+	const char *end;
 
         group_size = bfd_scan_vma (optarg, &end, 0);
         if (*end)
-    einfo (_("%P%F: invalid number `%s'\n"), optarg);
+	  einfo (_("%P%F: invalid number `%s'\n"), optarg);
       }
       break;
 
@@ -5552,7 +5548,7 @@ gldarmelfb_linux_eabi_list_options (FILE * file)
   fprintf (file, _("  --audit=AUDITLIB            Specify a library to use for auditing\n"));
   fprintf (file, _("  -Bgroup                     Selects group name lookup rules for DSO\n"));
   fprintf (file, _("  --build-id[=STYLE]          Generate build ID note\n"));
-  fprintf (file, _("  -P AUDITLIB, --depaudit=AUDITLIB\n" "           Specify a library to use for auditing dependencies\n"));
+  fprintf (file, _("  -P AUDITLIB, --depaudit=AUDITLIB\n" "			      Specify a library to use for auditing dependencies\n"));
   fprintf (file, _("  --disable-new-dtags         Disable new dynamic tags\n"));
   fprintf (file, _("  --enable-new-dtags          Enable new dynamic tags\n"));
   fprintf (file, _("  --eh-frame-hdr              Create .eh_frame_hdr section\n"));
@@ -5562,7 +5558,7 @@ gldarmelfb_linux_eabi_list_options (FILE * file)
   fprintf (file, _("  -z common-page-size=SIZE    Set common page size to SIZE\n"));
   fprintf (file, _("  -z defs                     Report unresolved symbols in object files.\n"));
   fprintf (file, _("  -z execstack                Mark executable as requiring executable stack\n"));
-  fprintf (file, _("  -z global                   Make symbols in DSO available for subsequently\n             loaded objects\n"));
+  fprintf (file, _("  -z global                   Make symbols in DSO available for subsequently\n			       loaded objects\n"));
   fprintf (file, _("  -z initfirst                Mark DSO to be initialized first at runtime\n"));
   fprintf (file, _("  -z interpose                Mark object to interpose all DSOs but executable\n"));
   fprintf (file, _("  -z lazy                     Mark object lazy runtime binding (default)\n"));
@@ -5578,10 +5574,9 @@ gldarmelfb_linux_eabi_list_options (FILE * file)
   fprintf (file, _("  -z noexecstack              Mark executable as not requiring executable stack\n"));
   fprintf (file, _("  -z norelro                  Don't create RELRO program header\n"));
   fprintf (file, _("  -z now                      Mark object non-lazy runtime binding\n"));
-  fprintf (file, _("  -z origin                   Mark object requiring immediate $ORIGIN\n       processing at runtime\n"));
+  fprintf (file, _("  -z origin                   Mark object requiring immediate $ORIGIN\n				processing at runtime\n"));
   fprintf (file, _("  -z relro                    Create RELRO program header\n"));
   fprintf (file, _("  -z stacksize=SIZE           Set size of stack segment\n"));
-  fprintf (file, _("  -z nosecondary              Convert secondary symbols to weak symbols\n"));
  
   fprintf (file, _("  --thumb-entry=<sym>         Set the entry point to be Thumb symbol <sym>\n"));
   fprintf (file, _("  --be8                       Output BE8 format image\n"));
@@ -5593,9 +5588,9 @@ gldarmelfb_linux_eabi_list_options (FILE * file)
   fprintf (file, _("  --use-blx                   Enable use of BLX instructions\n"));
   fprintf (file, _("  --vfp11-denorm-fix          Specify how to fix VFP11 denorm erratum\n"));
   fprintf (file, _("  --no-enum-size-warning      Don't warn about objects with incompatible\n"
-       "                                enum sizes\n"));
+		   "                                enum sizes\n"));
   fprintf (file, _("  --no-wchar-size-warning     Don't warn about objects with incompatible\n"
-       "                                wchar_t sizes\n"));
+		   "                                wchar_t sizes\n"));
   fprintf (file, _("  --pic-veneer                Always generate PIC interworking veneers\n"));
   fprintf (file, _("\
   --stub-group-size=N         Maximum size of a group of input sections that\n\
@@ -5626,7 +5621,7 @@ struct ld_emulation_xfer_struct ld_armelfb_linux_eabi_emulation =
   gldarmelfb_linux_eabi_get_script,
   "armelfb_linux_eabi",
   "elf32-bigarm",
-  arm_finish,
+  gldarmelfb_linux_eabi_finish,
   arm_elf_create_output_section_statements,
   gldarmelfb_linux_eabi_open_dynamic_archive,
   gldarmelfb_linux_eabi_place_orphan,
