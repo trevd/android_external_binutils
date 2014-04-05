@@ -21,7 +21,8 @@ LOCAL_CFLAGS := \
                -DSELECT_ARCHITECTURES='&bfd_arm_arch' \
                -DHAVE_bfd_elf32_littlearm_vec -DHAVE_bfd_elf32_bigarm_vec -DHAVE_bfd_elf32_little_generic_vec -DHAVE_bfd_elf32_big_generic_vec \
                -W -Wall -Wstrict-prototypes \
-               -Wmissing-prototypes -Wshadow -Werror -g -O2 \
+               -Wno-error=missing-prototypes -Wshadow -O2 \
+               -Wno-error=pointer-sign
                
 
 # Add
