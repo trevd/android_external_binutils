@@ -2,7 +2,7 @@ LOCAL_PATH:= $(call my-dir)/../ld
 
 include $(CLEAR_VARS)
 
-LD_TARGET := arm-linux-androideabi
+LD_TARGET := arm-unknown-linux-androideabi
 LD_BINDIR :=/system/bin
 LD_SCRIPTDIR :=/system/$(LD_TARGET)/lib 
 LD_SCRIPTDIR :=$(LOCAL_PATH)/../android/$(TARGET_ARCH)/ld/ldscripts
@@ -22,10 +22,12 @@ LOCAL_C_INCLUDES := \
                     $(LOCAL_PATH)/../include \
                     
 
+#LOCAL_LDFLAGS := -Wl,-dynamic-linker /system/bin/linker
+
 LOCAL_CFLAGS := \
                -Wl,-rpath -Wl,/system/lib \
                -W -Wall -Wstrict-prototypes \
-               -Wmissing-prototypes -Wno-erro=shadow -O0 \
+               -Wmissing-prototypes -Wno-error=shadow -O0 \
 
                
 # ld specific cflags
@@ -72,7 +74,8 @@ LOCAL_SRC_FILES += \
                     ../android/$(TARGET_ARCH)/ld/earmelfb_linux_eabi.c \
                     ../android/$(TARGET_ARCH)/ld/earmelf_linux_eabi.c
                     
-LOCAL_STATIC_LIBRARIES := libc libstdc++ libbfd libopcodes libiberty libz
+LOCAL_STATIC_LIBRARIES := libbfd libopcodes libiberty
+LOCAL_SHARED_LIBRARIES := libz
 
 include $(BUILD_EXECUTABLE)
 
