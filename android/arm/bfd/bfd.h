@@ -194,8 +194,8 @@ typedef bfd_vma bfd_uint64_t;
 
 /* An offset into a file.  BFD always uses the largest possible offset
    based on the build time availability of fseek, fseeko, or fseeko64.  */
-typedef BFD_HOST_64_BIT file_ptr;
-typedef unsigned BFD_HOST_64_BIT ufile_ptr;
+typedef long file_ptr;
+typedef unsigned long ufile_ptr;
 
 extern void bfd_sprintf_vma (bfd *, char *, bfd_vma);
 extern void bfd_fprintf_vma (bfd *, void *, bfd_vma);
@@ -205,7 +205,7 @@ extern void bfd_fprintf_vma (bfd *, void *, bfd_vma);
 
 typedef unsigned int flagword;  /* 32 bits of flags */
 typedef unsigned char bfd_byte;
-
+
 /* File formats.  */
 
 typedef enum bfd_format
@@ -217,7 +217,7 @@ typedef enum bfd_format
   bfd_type_end    /* Marks the end; don't use it!  */
 }
 bfd_format;
-
+
 /* Symbols and relocation.  */
 
 /* A count of carsyms (canonical archive symbols).  */
@@ -265,7 +265,7 @@ struct orl      /* Output ranlib.  */
   } u;      /* bfd* or file position.  */
   int namidx;   /* Index into string table.  */
 };
-
+
 /* Linenumber stuff.  */
 typedef struct lineno_cache_entry
 {
@@ -277,7 +277,7 @@ typedef struct lineno_cache_entry
   } u;
 }
 alent;
-
+
 /* Object and core file sections.  */
 
 #define align_power(addr, align)  \
@@ -315,7 +315,7 @@ typedef struct bfd_section *sec_ptr;
    && bfd_is_abs_section ((sec)->output_section)    \
    && (sec)->sec_info_type != SEC_INFO_TYPE_MERGE   \
    && (sec)->sec_info_type != SEC_INFO_TYPE_JUST_SYMS)
-
+
 typedef enum bfd_print_symbol
 {
   bfd_print_symbol_name,
@@ -339,7 +339,7 @@ typedef struct _symbol_info
 /* Get the name of a stabs type code.  */
 
 extern const char *bfd_get_stab_name (int);
-
+
 /* Hash table routines.  There is no way to free up a hash table.  */
 
 /* An element in the hash table.  Most uses will actually use a larger
@@ -580,7 +580,7 @@ extern void bfd_section_already_linked_table_free (void);
 extern bfd_boolean _bfd_handle_already_linked
   (struct bfd_section *, struct bfd_section_already_linked *,
    struct bfd_link_info *);
-
+
 /* Externally visible ECOFF routines.  */
 
 extern bfd_vma bfd_ecoff_get_gp_value
@@ -916,9 +916,9 @@ extern int elf32_arm_setup_section_lists
   (bfd *, struct bfd_link_info *);
 extern void elf32_arm_next_input_section
   (struct bfd_link_info *, struct bfd_section *);
-extern bfd_boolean elf32_arm_size_stubs
-  (bfd *, bfd *, struct bfd_link_info *, bfd_signed_vma,
-   struct bfd_section * (*) (const char *, struct bfd_section *), void (*) (void));
+extern bfd_boolean elf32_arm_size_stubs (bfd *, bfd *, struct bfd_link_info *, bfd_signed_vma group_size,
+          struct bfd_section * (const char *, struct bfd_section *, unsigned int), void (*layout_sections_again) (void));
+   
 extern bfd_boolean elf32_arm_build_stubs
   (struct bfd_link_info *);
 
