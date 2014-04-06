@@ -45,7 +45,7 @@ LOCAL_CFLAGS += \
 # the build system otherwise forces them to be c++.               
 LOCAL_CFLAGS += -x c 
                
-LOCAL_YACCFLAGS :=  -v
+LOCAL_YACCFLAGS :=  --yacc --verbose --language=c 
 
 include $(TARGET_ARCH_FLAGS)
 
